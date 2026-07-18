@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/tulika/Library/Python/3.9/lib/python/site-packages/pydantic_ai/**)",
+      "Bash(python3 -c \"import pydantic_ai; print\\(pydantic_ai.__version__\\)\")",
+      "Bash(python3 -c \"import pydantic_ai, os; print\\(os.path.dirname\\(pydantic_ai.__file__\\)\\)\")",
+      "Bash(find / -name \"abstract.py\" -path \"*pydantic_ai*\")"
+    ]
+  }
+}

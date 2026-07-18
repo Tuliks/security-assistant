@@ -1,0 +1,39 @@
+{
+  "scanner": "nessus",
+  "generated": "2026-07-17",
+  "findings": [
+    {
+      "id": "NS-001",
+      "severity": "high",
+      "title": "SQL injection in customer search endpoint",
+      "description": "The /api/customers search parameter is concatenated into a SQL query without parameterization, allowing injection and data exfiltration.",
+      "asset": "payments-api (10.0.4.21)",
+      "category": "sql_injection",
+      "cve": null,
+      "cvss": 8.2,
+      "location": "GET /api/customers?q= (port 443)"
+    },
+    {
+      "id": "NS-002",
+      "severity": "medium",
+      "title": "TLS 1.0/1.1 enabled on load balancer",
+      "description": "The load balancer still negotiates deprecated TLS 1.0/1.1. A misconfiguration that weakens transport security.",
+      "asset": "edge-lb (10.0.1.5)",
+      "category": "misconfiguration",
+      "cve": null,
+      "cvss": 5.0,
+      "location": "tcp/443"
+    },
+    {
+      "id": "NS-003",
+      "severity": "low",
+      "title": "Server version banner disclosure",
+      "description": "The web server discloses its exact version in the Server header, aiding attacker fingerprinting.",
+      "asset": "checkout-web (10.0.4.30)",
+      "category": "misconfiguration",
+      "cve": null,
+      "cvss": 3.1,
+      "location": "tcp/443 Server header"
+    }
+  ]
+}

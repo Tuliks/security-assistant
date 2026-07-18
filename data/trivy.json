@@ -1,0 +1,50 @@
+{
+  "scanner": "trivy",
+  "generated": "2026-07-16",
+  "findings": [
+    {
+      "id": "TR-001",
+      "severity": "critical",
+      "title": "Log4Shell RCE in log4j-core",
+      "description": "The container ships log4j-core 2.14.1, vulnerable to remote code execution via JNDI lookups (Log4Shell). Widely exploited in the wild.",
+      "asset": "checkout-web:latest",
+      "category": "vulnerable_dependency",
+      "cve": "CVE-2021-44228",
+      "cvss": 10.0,
+      "location": "org.apache.logging.log4j:log4j-core:2.14.1"
+    },
+    {
+      "id": "TR-002",
+      "severity": "critical",
+      "title": "Backdoor in xz-utils (liblzma)",
+      "description": "Image contains a compromised xz-utils release with a hidden SSH backdoor. Allows authentication bypass on affected sshd builds.",
+      "asset": "build-base:5.6.1",
+      "category": "vulnerable_dependency",
+      "cve": "CVE-2024-3094",
+      "cvss": 10.0,
+      "location": "xz-utils 5.6.1"
+    },
+    {
+      "id": "TR-003",
+      "severity": "high",
+      "title": "OpenSSL Heartbleed information disclosure",
+      "description": "openssl 1.0.1f is vulnerable to Heartbleed, leaking process memory (including private keys) to a remote attacker.",
+      "asset": "legacy-gateway:1.2",
+      "category": "vulnerable_dependency",
+      "cve": "CVE-2014-0160",
+      "cvss": 7.5,
+      "location": "openssl 1.0.1f"
+    },
+    {
+      "id": "TR-004",
+      "severity": "medium",
+      "title": "Outdated requests library with CRLF injection",
+      "description": "python requests 2.19.1 is affected by a header CRLF injection issue. Lower impact but should be upgraded.",
+      "asset": "payments-api:latest",
+      "category": "vulnerable_dependency",
+      "cve": "CVE-2018-18074",
+      "cvss": 5.3,
+      "location": "requests 2.19.1"
+    }
+  ]
+}

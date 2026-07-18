@@ -1,0 +1,39 @@
+{
+  "scanner": "gitleaks",
+  "generated": "2026-07-15",
+  "findings": [
+    {
+      "id": "GL-001",
+      "severity": "critical",
+      "title": "AWS secret access key committed to source",
+      "description": "A live AWS secret access key was found hardcoded in a config file. Exposed cloud credentials can allow full account takeover.",
+      "asset": "payments-api",
+      "category": "exposed_secret",
+      "cve": null,
+      "cvss": null,
+      "location": "src/config/aws.py:14"
+    },
+    {
+      "id": "GL-002",
+      "severity": "high",
+      "title": "Stripe live API key in test fixture",
+      "description": "A Stripe live secret key (sk_live_...) was committed inside a test fixture. Attackers could issue refunds or read customer payment data.",
+      "asset": "payments-api",
+      "category": "exposed_secret",
+      "cve": null,
+      "cvss": null,
+      "location": "tests/fixtures/billing.json:3"
+    },
+    {
+      "id": "GL-003",
+      "severity": "medium",
+      "title": "Slack webhook URL in commit history",
+      "description": "An incoming Slack webhook URL was found in git history. Could be abused to post spoofed messages to an internal channel.",
+      "asset": "checkout-web",
+      "category": "exposed_secret",
+      "cve": null,
+      "cvss": null,
+      "location": "scripts/notify.sh:22"
+    }
+  ]
+}
