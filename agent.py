@@ -23,6 +23,7 @@ load_dotenv()  # pull OPENAI_API_KEY / ANTHROPIC_API_KEY / AGENT_MODEL from .env
 
 from schemas import NeedMoreInfo, SecurityAnswer
 from tools.analytics import average_cvss, calculate_risk, count_critical, extract_cves
+from tools.asset_graph import correlate_asset, riskiest_assets
 from tools.cve_lookup import cve_lookup
 from tools.rag_search import rag_search
 from tools.remediation import suggest_remediation
@@ -39,6 +40,12 @@ and prioritize them, enrich CVEs with external intelligence, and suggest fixes.
 How to work:
 - To learn WHAT findings exist, call rag_search. Cite the findings you use; never
   invent a finding, an asset name, or a CVE that rag_search didn't return.
+- To see the FULL exposure on one asset (every finding across scanners), or to
+  rank assets by combined risk, use correlate_asset / riskiest_assets. Scanners
+  spell the same asset differently (payments-api vs payments-api:latest vs
+  "payments-api (10.0.4.21)") — these normalize and correlate them, catching
+  compound risks (e.g. a leaked secret AND an injection vuln on one asset) that a
+  per-finding search misses.
 - For counts and averages, use the analytics tools (count_critical, average_cvss)
   rather than eyeballing — they are exact.
 - For anything about a specific CVE (its real CVSS, severity, known-exploited/KEV
@@ -74,6 +81,8 @@ agent = Agent(
 # separate from the run-wide UsageLimits below. All are plain (no RunContext),
 # so we register with tool_plain — same idiom as the travel lab.
 agent.tool_plain(retries=2)(rag_search)
+agent.tool_plain(retries=1)(correlate_asset)
+agent.tool_plain(retries=1)(riskiest_assets)
 agent.tool_plain(retries=1)(count_critical)
 agent.tool_plain(retries=1)(average_cvss)
 agent.tool_plain(retries=1)(extract_cves)

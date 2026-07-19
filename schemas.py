@@ -74,6 +74,29 @@ class RemediationPlaybook(BaseModel):
     references: list[str] = Field(default_factory=list)
 
 
+class AssetExposure(BaseModel):
+    """All findings correlated onto ONE asset, across every scanner report.
+
+    Output of correlate_asset() / riskiest_assets() — the graph tools. Scanners
+    name the same asset differently (`payments-api`, `payments-api:latest`,
+    `payments-api (10.0.4.21)`); this is the view AFTER normalizing them to one
+    canonical node, so a single-finding search can't produce it — only a
+    correlation over the graph can. The model may cite it but not invent it.
+    """
+
+    asset: str = Field(description="Canonical (normalized) asset name")
+    findings: list[Finding] = Field(description="Every finding on this asset, across scanners")
+    scanners: list[str] = Field(default_factory=list, description="Distinct scanners that flagged this asset")
+    finding_count: int
+    max_cvss: float | None = Field(default=None, ge=0, le=10, description="Highest CVSS among the asset's findings")
+    has_exposed_secret: bool = Field(description="An exposed_secret finding is present")
+    has_vulnerability: bool = Field(description="An exploitable vuln (CVE-bearing dep or injection) is present")
+    compound_risk: bool = Field(
+        description="Secret AND exploitable vuln co-located on this asset — worse than either alone"
+    )
+    rationale: str = Field(description="How the correlated findings produced this exposure view")
+
+
 # The final output is a UNION: succeed with an answer, or abstain and ask.
 # output_type=[SecurityAnswer, NeedMoreInfo] lets the model return NeedMoreInfo
 # when no ingested report data supports a grounded answer — enforced by the type

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "full_exposure_payments",
+    "asset": "payments-api",
+    "query": "show every security issue affecting the payments-api service",
+    "expected_ids": ["GL-001", "GL-002", "NS-001", "TR-004"],
+    "note": "4 findings across gitleaks/nessus/trivy, named payments-api / payments-api:latest / payments-api (10.0.4.21). Graph correlates all; hybrid returns a diluted top-k."
+  },
+  {
+    "id": "full_exposure_checkout",
+    "asset": "checkout-web",
+    "query": "what are all the problems on the checkout-web app",
+    "expected_ids": ["TR-001", "GL-003", "NS-003"],
+    "note": "Log4Shell + Slack-webhook leak + TLS misconfig, three scanners, three spellings. Graph gets the full set."
+  }
+]

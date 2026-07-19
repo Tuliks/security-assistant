@@ -161,3 +161,61 @@ query the keyword scorer missed entirely (recall 0.00 → 1.00).
 **The seam held:** the tool signature `rag_search(query, severity, limit) -> list[Finding]`
 never changed, so `agent.py` and `schemas.py` were untouched — exactly the swap point the
 README promised. `python eval/run_eval.py` still scores 1.00/1.00.
+
+---
+
+## Milestone 3 — Graph RAG (cross-report correlation)
+
+Hybrid retrieval finds findings *individually*. But the risk that matters is often
+**relational**: several findings, from different scanners, on the *same asset*. A
+leaked credential (Gitleaks) plus a SQL-injection vuln (Nessus) on one service is a
+compound breach path — worse than either alone, and invisible to any single-finding
+search. That's what a graph over the corpus buys you.
+
+### The real work was normalization, not the graph
+
+The data bit back: scanners name the same asset differently.
+
+```
+payments-api            (gitleaks)
+payments-api:latest     (trivy   — image tag)
+payments-api (10.0.4.21)(nessus  — host/ip annotation)
+```
+
+Nothing correlates until those collapse to one canonical node. `normalize_asset`
+strips the `:tag` and the ` (...)` annotation and lowercases — three strings → one
+graph node. The graph itself (`asset -> [findings]`, `category -> [findings]`) is
+trivial once the nodes are clean. **Lesson: in correlation problems, entity
+resolution is the hard part; the graph is the easy part.**
+
+### Honest eval: on a small corpus, recall doesn't show the win
+
+`eval/graph_eval.py` compares hybrid `rag_search` vs graph `correlate_asset` on
+"everything on <asset>" questions:
+
+```
+           recall   precision
+  hybrid   1.000    0.900
+  graph    1.000    1.000
+```
+
+Both *recall* the full set (only 10 findings, `limit=5` catches them). The honest
+difference is **precision**: hybrid pulls in a wrong-asset lookalike (NS-002 on
+`edge-lb` bleeding into a payments-api query); graph returns exactly the asset's
+node. Two more graph-only wins a flat id-list can't express at all: it never
+truncates at `limit`, and it emits correlated *structure* — `scanners`,
+`max_cvss`, and the `compound_risk` flag (secret AND vuln co-located) that is the
+whole point. **Lesson: pick the metric that exposes the mechanism; recall@k was
+the right metric for hybrid-vs-keyword and the wrong one here.**
+
+### Kept honest about what doesn't fire
+
+A `same_cve` edge is part of the Graph-RAG idea, but every CVE in this corpus is
+unique — so it's documented as a no-op that would light up on a larger corpus,
+not dressed up as a working feature.
+
+**The seam held again:** added a new tool file + one schema (`AssetExposure`) +
+two tool registrations + three prompt lines. `rag_search`, `corpus.py`,
+`schemas.py`'s existing types, `trace.py`, `app.py` untouched. `run_eval.py` stays
+1.00/1.00 — and the agent picked up `correlate_asset`/`riskiest_assets` on its own
+in the chained-risk case without being told to.

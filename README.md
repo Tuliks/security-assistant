@@ -22,6 +22,7 @@ reconstructs it from `result.all_messages()` so you can *see* it.
 | Tool | Kind | Purpose |
 |------|------|---------|
 | `rag_search` | internal retrieval | **hybrid search** — BM25 (lexical) + embeddings/ChromaDB (semantic), fused with Reciprocal Rank Fusion |
+| `correlate_asset`, `riskiest_assets` | graph correlation | **cross-report correlation** — every finding on one asset (across scanners), and asset risk ranking, with compound-risk detection |
 | `count_critical`, `average_cvss`, `extract_cves` | deterministic compute | exact counts/averages/CVE extraction over the corpus |
 | `calculate_risk` | deterministic compute | CVSS + KEV + exposure → prioritization score |
 | `cve_lookup` | external HTTP | enrich a CVE from **NIST NVD** (live, keyless), incl. CISA KEV status |
@@ -91,9 +92,27 @@ Embeddings are local (`sentence-transformers`, `all-mpnet-base-v2`) — no API k
 first run downloads the model (~400MB). The old scorer stays in `rag_search.py` as
 `_keyword_rank`, used only as the eval baseline.
 
+## Graph correlation (cross-report)
+
+`rag_search` finds findings one at a time; the risk that matters is often
+*relational* — several findings, from different scanners, on the **same asset**.
+The obstacle: scanners spell assets differently (`payments-api`,
+`payments-api:latest`, `payments-api (10.0.4.21)`). `tools/asset_graph.py`
+normalizes those to one canonical node, then `correlate_asset` returns the full
+per-asset picture and `riskiest_assets` ranks by combined exposure — flagging
+**compound risk** (a leaked secret *and* an exploitable vuln on one asset).
+
+```bash
+python eval/graph_eval.py    # graph vs hybrid: recall + precision on asset questions
+```
+
+On this 10-finding corpus both recall the set, but graph is asset-*exact*
+(precision 1.00 vs hybrid 0.90 — hybrid bleeds in wrong-asset lookalikes) and
+emits correlated structure a flat id-list can't.
+
 ## Out of scope (later milestones)
 
 FastAPI endpoints, PDF/XML/CSV parsing, PDF report generation, and a web UI.
-Next on the retrieval track: Graph RAG (cross-report correlation), then query
-rewriting/expansion. The agent core here is a drop-in for those wrappers.
+Last on the retrieval track: query rewriting/expansion. The agent core here is a
+drop-in for those wrappers.
 ```
