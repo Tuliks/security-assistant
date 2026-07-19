@@ -96,3 +96,68 @@ ANSWER  SecurityAnswer(
 ```
 
 The pattern: **`rag_search` is always the first hop.** It converts a vague natural-language question into concrete, typed findings — and everything after it (CVE enrichment, risk scoring, remediation) is chained off the assets, categories, and CVE ids that retrieval surfaced. Without it, the model has nothing real to stand on; with it, every claim traces back to a tool result.
+
+---
+
+## Hybrid retrieval — how `rag_search` finds findings now (BM25 + semantic + RRF)
+
+`rag_search` used to score findings by **token overlap** — how many words the query
+literally shared with a finding. That misses paraphrases: *"any leaked credentials?"*
+shares no words with *"AWS secret access key committed to source"*, so it returned
+nothing. It replaced that with **hybrid retrieval**: two searches run in parallel and
+their results are fused.
+
+### The two searches (they're good at opposite things)
+
+- **BM25 (lexical)** — a proper keyword ranker. Great at *exact identifiers*: a
+  `CVE-2021-44228`, a `GL-001`, an asset name like `payments-api`. Bad at synonyms —
+  it only knows words, not meaning. (`tools/rag_search.py`, `BM25Okapi`.)
+- **Semantic (embeddings + ChromaDB)** — each finding is turned into a vector by a
+  local model (`tools/embedder.py`, `all-mpnet-base-v2`); the query is turned into a
+  vector too, and we find the nearest ones (`tools/vector_store.py`). Great at
+  *meaning* ("leaked credentials" ≈ "exposed secret"). Fuzzier on exact ids.
+
+Security findings need **both** — they mix exact ids (BM25's strength) with
+natural-language topics (semantic's strength). That's why hybrid, not either alone.
+
+### Fusing the two lists — Reciprocal Rank Fusion (RRF)
+
+Each search returns findings *ranked* best-first. We can't just compare their raw
+scores — BM25 scores and cosine distances live on different scales (and Chroma
+reports *distance*, where lower = closer). RRF sidesteps that by using only the
+**rank position**: a finding's fused score is `Σ 1/(60 + rank)` across both lists.
+Appear high in either list → score well; appear high in both → win. (`_rrf` in
+`tools/rag_search.py`.)
+
+### Two things that keep it honest (and cost me a debugging round)
+
+1. **Semantic search always returns *something*.** Ask for "weather in Paris" and it
+   still hands back its 10 closest findings — all irrelevant. That would flood the
+   grounding/abstention path. Fix: a **distance gate** (`_SEMANTIC_MAX_DISTANCE`) —
+   only keep semantic hits closer than a measured cutoff. Off-topic query → no
+   semantic candidates.
+2. **BM25 matching stopwords.** "weather **in** Paris" shares "in" with many findings,
+   so BM25 gave them nonzero scores. Fix: strip stopwords from the *lexical* side only
+   (`_content_tokens`). This also sharpened exact-id search — `CVE-2021-44228` went
+   back to ranking the right finding first.
+
+Together: a truly off-topic query now returns `[]`, so the model abstains
+(`NeedMoreInfo`) instead of being handed junk.
+
+### Did it actually help? (measured, not asserted)
+
+`eval/retrieval_eval.py` runs the old keyword scorer (kept as `_keyword_rank`) and the
+new hybrid over a golden `query → finding ids` set:
+
+```
+             recall@5   MRR
+  keyword    0.833      0.750
+  hybrid     1.000      0.917
+```
+
+Hybrid ties or beats keyword on every case; the clearest win is a paraphrased SQL-injection
+query the keyword scorer missed entirely (recall 0.00 → 1.00).
+
+**The seam held:** the tool signature `rag_search(query, severity, limit) -> list[Finding]`
+never changed, so `agent.py` and `schemas.py` were untouched — exactly the swap point the
+README promised. `python eval/run_eval.py` still scores 1.00/1.00.

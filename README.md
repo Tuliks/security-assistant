@@ -21,7 +21,7 @@ reconstructs it from `result.all_messages()` so you can *see* it.
 
 | Tool | Kind | Purpose |
 |------|------|---------|
-| `rag_search` | internal retrieval | find findings across `data/` (lightweight keyword scoring; swap for ChromaDB later) |
+| `rag_search` | internal retrieval | **hybrid search** — BM25 (lexical) + embeddings/ChromaDB (semantic), fused with Reciprocal Rank Fusion |
 | `count_critical`, `average_cvss`, `extract_cves` | deterministic compute | exact counts/averages/CVE extraction over the corpus |
 | `calculate_risk` | deterministic compute | CVSS + KEV + exposure → prioritization score |
 | `cve_lookup` | external HTTP | enrich a CVE from **NIST NVD** (live, keyless), incl. CISA KEV status |
@@ -76,9 +76,24 @@ data/          sample scanner reports (the "ingested" corpus)
 eval/          cases.json + run_eval.py (output-type + tool-recall metrics)
 ```
 
+## Retrieval eval
+
+`rag_search` is hybrid: a BM25 lexical rank and a semantic (embeddings + ChromaDB)
+rank, fused with Reciprocal Rank Fusion. To see that it beats the keyword scorer it
+replaced, `eval/retrieval_eval.py` runs both over a golden `query -> finding ids`
+set and prints recall@k / MRR side by side:
+
+```bash
+python eval/retrieval_eval.py
+```
+
+Embeddings are local (`sentence-transformers`, `all-mpnet-base-v2`) — no API key;
+first run downloads the model (~400MB). The old scorer stays in `rag_search.py` as
+`_keyword_rank`, used only as the eval baseline.
+
 ## Out of scope (later milestones)
 
-FastAPI endpoints, real ChromaDB + embeddings, PDF/XML/CSV parsing, PDF report
-generation, and a web UI. The agent core here is a drop-in for those wrappers —
-e.g. `rag_search`/`corpus.py` is the seam where ChromaDB replaces the keyword scorer.
+FastAPI endpoints, PDF/XML/CSV parsing, PDF report generation, and a web UI.
+Next on the retrieval track: Graph RAG (cross-report correlation), then query
+rewriting/expansion. The agent core here is a drop-in for those wrappers.
 ```

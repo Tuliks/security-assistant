@@ -1,0 +1,38 @@
+[
+  {
+    "id": "exact_cve",
+    "query": "CVE-2021-44228",
+    "expected_ids": ["TR-001"],
+    "note": "Exact CVE id — BM25's strength. Both keyword and hybrid should nail it."
+  },
+  {
+    "id": "exact_asset",
+    "query": "payments-api",
+    "expected_ids": ["GL-001", "GL-002", "TR-004", "NS-001"],
+    "note": "Exact asset/repo name — lexical match across all findings on that asset."
+  },
+  {
+    "id": "topic_secrets",
+    "query": "which repositories contain exposed secrets",
+    "expected_ids": ["GL-001", "GL-002", "GL-003"],
+    "note": "Topic query with some lexical overlap ('exposed'); both should do well."
+  },
+  {
+    "id": "synonym_messaging",
+    "query": "can someone impersonate us on our internal messaging platform",
+    "expected_ids": ["GL-003"],
+    "note": "Pure paraphrase of the Slack webhook finding — zero token overlap, so keyword misses entirely. Semantic should catch it."
+  },
+  {
+    "id": "synonym_sqli",
+    "query": "unsanitized user input lets an attacker read our database",
+    "expected_ids": ["NS-001"],
+    "note": "Paraphrase of the SQL injection finding (no shared content words). Keyword miss, semantic hit."
+  },
+  {
+    "id": "paraphrase_log4shell",
+    "query": "outdated java logging component being actively exploited",
+    "expected_ids": ["TR-001"],
+    "note": "Keyword matches decoys ('outdated'->TR-004, 'exploited'->TR-001); semantic should rank the real Log4Shell finding first, so hybrid MRR beats keyword."
+  }
+]
