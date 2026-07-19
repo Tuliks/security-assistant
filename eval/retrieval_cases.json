@@ -34,5 +34,23 @@
     "query": "outdated java logging component being actively exploited",
     "expected_ids": ["TR-001"],
     "note": "Keyword matches decoys ('outdated'->TR-004, 'exploited'->TR-001); semantic should rank the real Log4Shell finding first, so hybrid MRR beats keyword."
+  },
+  {
+    "id": "jargon_sqli",
+    "query": "sqli against our customer search api",
+    "expected_ids": ["NS-001"],
+    "note": "'sqli' is one BM25 token, distinct from 'sql'+'injection' in NS-001's text, so lexical misses it. Query expansion adds 'sql injection' -> lexical hit, sharper rank."
+  },
+  {
+    "id": "jargon_creds",
+    "query": "leaked creds sitting in our git repos",
+    "expected_ids": ["GL-001", "GL-002", "GL-003"],
+    "note": "'creds' never appears in the findings; only GL-001 says 'credentials'. Expansion creds->credentials bridges the shorthand."
+  },
+  {
+    "id": "jargon_exfil",
+    "query": "can an attacker exfil data from the customer endpoint",
+    "expected_ids": ["NS-001"],
+    "note": "NS-001 says 'data exfiltration'; the query uses 'exfil'. Expansion exfil->exfiltration is a direct lexical bridge BM25 otherwise misses."
   }
 ]

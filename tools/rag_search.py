@@ -51,6 +51,35 @@ _STOPWORDS = frozenset(
 )
 
 
+# Query expansion: analysts type acronyms and shorthand ("sqli", "creds", "rce")
+# that the finding text spells out ("SQL injection", "credentials", "remote code
+# execution"). BM25 tokenizes "sqli" and "sql"/"injection" as *different* tokens,
+# so the lexical side misses the match entirely; expanding the query bridges the
+# vocabulary gap before ranking. Deterministic (no LLM), so it's free and testable.
+# General security shorthand, NOT tuned to the eval set.
+_EXPANSIONS = {
+    "rce": "remote code execution",
+    "sqli": "sql injection",
+    "xss": "cross site scripting",
+    "ssrf": "server side request forgery",
+    "csrf": "cross site request forgery",
+    "xxe": "xml external entity",
+    "cred": "credentials",
+    "creds": "credentials",
+    "mfa": "multi factor authentication",
+    "2fa": "two factor authentication",
+    "privesc": "privilege escalation",
+    "log4shell": "log4j remote code execution",
+    "heartbleed": "openssl memory disclosure",
+    "exfil": "exfiltration",
+    "misconfig": "misconfiguration",
+    "dep": "dependency",
+    "deps": "dependencies",
+    "vuln": "vulnerability",
+    "vulns": "vulnerabilities",
+}
+
+
 def _tokens(text: str) -> list[str]:
     return _WORD.findall(text.lower())
 
@@ -129,26 +158,28 @@ def _rrf(rankings: list[list[str]], k: int = _RRF_K) -> list[str]:
     return sorted(scores, key=lambda fid: scores[fid], reverse=True)
 
 
-def rag_search(query: str, severity: str | None = None, limit: int = 5) -> list[Finding]:
-    """Search the ingested scanner reports for findings relevant to a query.
+def expand_query(query: str) -> str:
+    """Append spelled-out forms of any security acronyms/shorthand in the query.
 
-    Use this to discover what findings exist before citing or analyzing them,
-    e.g. "exposed secrets", "SQL injection", "issues in payments-api".
-
-    Args:
-        query: What to look for — keywords, an asset/repo name, or a topic.
-        severity: Optional filter, one of critical/high/medium/low/info.
-        limit: Max findings to return (1-20, default 5).
+    "sqli in checkout" -> "sqli in checkout sql injection". The original terms are
+    kept (so exact matches still fire) and the expansions are added, widening the
+    surface both BM25 and the embedding see. A query with no known shorthand is
+    returned unchanged — so out-of-scope queries don't gain spurious terms and the
+    abstention path is preserved.
     """
-    if not query or not query.strip():
-        raise ModelRetry("Empty query. Pass keywords, an asset name, or a topic to search for.")
-    if limit <= 0 or limit > 20:
-        raise ModelRetry(f"Invalid limit: {limit}. Must be between 1 and 20.")
-    if severity is not None and severity.lower() not in _VALID_SEVERITIES:
-        raise ModelRetry(
-            f"Invalid severity {severity!r}. Use one of: {', '.join(_VALID_SEVERITIES)}, or omit it."
-        )
+    lower = query.lower()
+    extra = [
+        exp for term, exp in _EXPANSIONS.items() if re.search(rf"\b{re.escape(term)}\b", lower)
+    ]
+    return f"{query} {' '.join(extra)}" if extra else query
 
+
+def _hybrid_search(query: str, severity: str | None, limit: int) -> list[Finding]:
+    """The BM25 + semantic + RRF fusion core, over the query AS GIVEN (no expansion).
+
+    Assumes inputs are already validated. Factored out so eval/retrieval_eval.py
+    can measure hybrid with vs. without query expansion by calling this directly.
+    """
     index = _get_index()
 
     # Severity is a pre-filter on the candidate set (same behavior as before):
@@ -173,6 +204,30 @@ def rag_search(query: str, severity: str | None = None, limit: int = 5) -> list[
         return []
 
     return [index.by_id[fid] for fid in fused[:limit]]
+
+
+def rag_search(query: str, severity: str | None = None, limit: int = 5) -> list[Finding]:
+    """Search the ingested scanner reports for findings relevant to a query.
+
+    Use this to discover what findings exist before citing or analyzing them,
+    e.g. "exposed secrets", "SQL injection", "issues in payments-api". Common
+    security shorthand (sqli, rce, creds, ...) is expanded automatically.
+
+    Args:
+        query: What to look for — keywords, an asset/repo name, or a topic.
+        severity: Optional filter, one of critical/high/medium/low/info.
+        limit: Max findings to return (1-20, default 5).
+    """
+    if not query or not query.strip():
+        raise ModelRetry("Empty query. Pass keywords, an asset name, or a topic to search for.")
+    if limit <= 0 or limit > 20:
+        raise ModelRetry(f"Invalid limit: {limit}. Must be between 1 and 20.")
+    if severity is not None and severity.lower() not in _VALID_SEVERITIES:
+        raise ModelRetry(
+            f"Invalid severity {severity!r}. Use one of: {', '.join(_VALID_SEVERITIES)}, or omit it."
+        )
+
+    return _hybrid_search(expand_query(query), severity, limit)
 
 
 # --- Baseline: the old keyword-overlap scorer -------------------------------

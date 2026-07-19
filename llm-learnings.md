@@ -219,3 +219,52 @@ two tool registrations + three prompt lines. `rag_search`, `corpus.py`,
 `schemas.py`'s existing types, `trace.py`, `app.py` untouched. `run_eval.py` stays
 1.00/1.00 — and the agent picked up `correlate_asset`/`riskiest_assets` on its own
 in the chained-risk case without being told to.
+
+---
+
+## Milestone 4 — Query rewriting / expansion
+
+Analysts type shorthand — `sqli`, `creds`, `rce`, `exfil` — that the finding text
+spells out ("SQL injection", "credentials", ...). `expand_query` appends the
+spelled-out form to the query before ranking. It's a **deterministic** map (no
+LLM), so it's free, zero-latency, and fully testable. Kept general (standard
+security acronyms), not tuned to the eval set.
+
+Why append rather than replace: BM25 tokenizes `sqli` and `sql`+`injection` as
+*different* tokens, so the lexical arm can't match them; adding the expansion
+bridges the gap while the original terms still fire for exact matches.
+
+### The honest result: rewriting tied plain hybrid — and that's the lesson
+
+```
+             recall@5   MRR
+  hybrid     1.000      0.944
+  hybrid+rw  1.000      0.944      <- identical
+```
+
+Query expansion is a **lexical** fix, and the semantic arm already maps
+`sqli`→SQL injection and `creds`→credentials well enough that the *fused* result
+doesn't move. So on the headline metric, rewriting adds nothing here.
+
+The value only shows when you **isolate the BM25 arm** (the eval does this in a
+final section):
+
+```
+  jargon_creds   BM25 recall 0.33 -> 0.67   (expansion recovered GL-001)
+  BM25 mean recall@5:  raw 0.815 -> expanded 0.852
+```
+
+`creds`→`credentials` turns a real lexical miss into a hit. **Lesson: measure the
+arm the technique actually touches. Reporting only the fused number would have
+made a working feature look useless; reporting only "it helps" would have been an
+unbacked claim.** Query rewriting earns its place as a cheap safety net — for when
+the embedder is weak, offline, or hasn't seen a term — not as a headline win on a
+corpus where semantic already covers the vocabulary.
+
+### Seam, again
+
+Factored the fusion core into `_hybrid_search(query, severity, limit)` (ranks the
+query as-given); `rag_search` = validate → `expand_query` → `_hybrid_search`. The
+public signature is unchanged, so `agent.py`/`schemas.py` stay put, and the eval
+can call `_hybrid_search` directly to compare with/without expansion. `run_eval.py`
+stays 1.00/1.00. **Retrieval track complete: hybrid → graph → rewrite.**

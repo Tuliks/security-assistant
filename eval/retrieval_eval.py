@@ -22,7 +22,7 @@ import sys
 # Allow "python eval/retrieval_eval.py" from the repo root.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.rag_search import _keyword_rank, rag_search  # noqa: E402
+from tools.rag_search import _get_index, _hybrid_search, _keyword_rank, expand_query, rag_search  # noqa: E402
 
 CASES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "retrieval_cases.json")
 K = 5
@@ -49,9 +49,14 @@ def main() -> None:
     with open(CASES) as f:
         cases = json.load(f)
 
+    # keyword baseline -> hybrid (no query expansion) -> hybrid + rewrite.
+    # _hybrid_search is the fusion core over the query as-given; rag_search runs
+    # the same core over the acronym-expanded query, so the two columns isolate
+    # exactly what query rewriting adds.
     runners = {
         "keyword": lambda q: _ids(_keyword_rank(q, limit=K)),
-        "hybrid": lambda q: _ids(rag_search(q, limit=K)),
+        "hybrid": lambda q: _ids(_hybrid_search(q, None, K)),
+        "hybrid+rw": lambda q: _ids(rag_search(q, limit=K)),
     }
 
     agg = {name: {"recall": [], "mrr": []} for name in runners}
@@ -74,6 +79,26 @@ def main() -> None:
         rec = sum(agg[name]["recall"]) / len(cases)
         mrr = sum(agg[name]["mrr"]) / len(cases)
         print(f"  {name:<10} {rec:.3f}      {mrr:.3f}")
+
+    # Why hybrid == hybrid+rw above: on this corpus the semantic arm already maps
+    # 'sqli'->SQL injection, 'creds'->credentials, so the FUSED result doesn't move.
+    # Query expansion is a *lexical* fix — its effect is only visible on the BM25
+    # arm in isolation. Measure it there so the mechanism is a number, not a claim.
+    index = _get_index()
+    raw_rec = exp_rec = 0.0
+    print("\n=== Lexical-only (BM25): query expansion's effect on recall ===")
+    for c in cases:
+        raw = index.bm25_ranking(c["query"])[:K]
+        exp = index.bm25_ranking(expand_query(c["query"]))[:K]
+        r = recall_at_k(raw, c["expected_ids"], K)
+        e = recall_at_k(exp, c["expected_ids"], K)
+        raw_rec += r
+        exp_rec += e
+        if e != r:
+            recovered = set(exp) & set(c["expected_ids"]) - set(raw)
+            print(f"  {c['id']:<22} recall {r:.2f} -> {e:.2f}   (expansion recovered {sorted(recovered)})")
+    n = len(cases)
+    print(f"  BM25 mean recall@{K}:  raw {raw_rec / n:.3f}  ->  expanded {exp_rec / n:.3f}")
 
 
 if __name__ == "__main__":

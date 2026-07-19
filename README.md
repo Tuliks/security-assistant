@@ -21,7 +21,7 @@ reconstructs it from `result.all_messages()` so you can *see* it.
 
 | Tool | Kind | Purpose |
 |------|------|---------|
-| `rag_search` | internal retrieval | **hybrid search** — BM25 (lexical) + embeddings/ChromaDB (semantic), fused with Reciprocal Rank Fusion |
+| `rag_search` | internal retrieval | **hybrid search** — BM25 (lexical) + embeddings/ChromaDB (semantic), fused with Reciprocal Rank Fusion, over an acronym-expanded query |
 | `correlate_asset`, `riskiest_assets` | graph correlation | **cross-report correlation** — every finding on one asset (across scanners), and asset risk ranking, with compound-risk detection |
 | `count_critical`, `average_cvss`, `extract_cves` | deterministic compute | exact counts/averages/CVE extraction over the corpus |
 | `calculate_risk` | deterministic compute | CVSS + KEV + exposure → prioritization score |
@@ -92,6 +92,15 @@ Embeddings are local (`sentence-transformers`, `all-mpnet-base-v2`) — no API k
 first run downloads the model (~400MB). The old scorer stays in `rag_search.py` as
 `_keyword_rank`, used only as the eval baseline.
 
+**Query rewriting.** Before ranking, `expand_query` appends spelled-out forms of
+security shorthand (`sqli`→`sql injection`, `creds`→`credentials`, ...) so the
+lexical arm doesn't miss on jargon. It's deterministic (no LLM). The eval prints a
+third column (`hybrid+rw`) — on this corpus it *ties* plain hybrid, because the
+semantic arm already covers the shorthand, so the fused result doesn't move. The
+value is only visible on the **BM25-only** arm the eval isolates at the end
+(`creds`→`credentials` recovers GL-001, lexical recall 0.815→0.852): rewriting is a
+cheap safety net for when the embedder is weak, unavailable, or hasn't seen the term.
+
 ## Graph correlation (cross-report)
 
 `rag_search` finds findings one at a time; the risk that matters is often
@@ -113,6 +122,6 @@ emits correlated structure a flat id-list can't.
 ## Out of scope (later milestones)
 
 FastAPI endpoints, PDF/XML/CSV parsing, PDF report generation, and a web UI.
-Last on the retrieval track: query rewriting/expansion. The agent core here is a
-drop-in for those wrappers.
+The retrieval track is complete (hybrid search → graph correlation → query
+rewriting). The agent core here is a drop-in for those wrappers.
 ```
