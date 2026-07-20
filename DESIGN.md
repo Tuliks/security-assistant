@@ -74,6 +74,12 @@ Two independent halves that meet at the vector store:
   convention by `ingestion/scan.py`.
 - **Agent** answers questions by planning tool calls over that store.
 
+Ingestion is "offline" only in the sense of being a separate concern — it does
+**not** require a separate command. `app.py` runs an **incremental auto-sync** on
+startup (`collect_envelopes()` = folder scan ∪ manifest → `sync()`), embedding only
+new/changed records, so an operator just drops reports and runs the assistant. The
+`ingest.py` CLI remains for scripted/CI use; both write the same persistent store.
+
 ## 5. Key design decisions & trade-offs
 
 | Decision | Why | Trade-off accepted |
@@ -85,6 +91,7 @@ Two independent halves that meet at the vector store:
 | **Parser/mapper split** | Same scanner exports many formats; same format used by many scanners | Two registries instead of one; slight indirection |
 | **Manifest as the envelope** | A Trivy Excel can't say "I'm product ProductB, release ReleaseB.1, scanned 2026-02-24" | Someone/something must supply it → solved by `--scan` |
 | **`--scan` derives manifest from folders** | Hand-writing a manifest doesn't scale to many product×release×scanner×week drops | Requires a strict folder convention; a few fields (category, date) need inference |
+| **Auto-sync on `app.py` launch** (incremental) | One command for the operator — drop files, run; only new/changed records are re-embedded | Slight startup cost; a `--reset` rebuild is destructive (guarded by a pre-wipe model warmup) |
 | **Graph correlation** hand-rolled | Cross-scanner asset risk is *relational*; flat retrieval bleeds in wrong-asset lookalikes | Custom code to maintain vs. a library |
 | **Deterministic analytics tools** | Counts/averages/CVE extraction must be exact, never an LLM guess | Model can't "reason" over them — must call the tool |
 
@@ -119,6 +126,7 @@ remains the fallback for anything outside the convention (e.g. lab JSON fixtures
 - ✅ Hybrid retrieval → graph correlation → query rewriting (retrieval track)
 - ✅ Production ingestion (parse CSV/Excel/HTML/PDF/JSON, per-scanner mappers)
 - ✅ Folder-derived manifest (`--scan`)
+- ✅ One-command operation — `app.py` auto-syncs the corpus on launch (incremental; `--reset` for a clean rebuild)
 - ⏭ Mappers for Blackduck / Checkmarx / real Gitleaks
 - ⏭ FastAPI wrapper + web UI + PDF report generation
 

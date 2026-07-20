@@ -45,6 +45,11 @@ cp .env.example .env         # then set OPENAI_API_KEY (or switch AGENT_MODEL)
 
 ## Run
 
+`app.py` **auto-syncs the corpus on startup** — it discovers reports from the
+folder tree (unioned with `manifest.csv`) and incrementally ingests any new or
+changed ones before the chat opens, so it's the *only* script you need to run.
+Drop reports under `data/reports/<product>/<release>/<scanner>/[<date>/]` and go.
+
 Single query (one independent turn):
 
 ```bash
@@ -59,6 +64,17 @@ You: Show critical vulnerabilities
 You: Now just the ones in payments-api
 ```
 
+Force a clean full rebuild of the store on launch (drops + re-ingests everything,
+also purging reports removed at the source):
+
+```bash
+python app.py --reset
+```
+
+The startup sync is **incremental** — only new/changed records are re-embedded, so
+a normal launch with nothing new is near-instant. `python ingest.py` (below) is
+still available for scripted/CI ingestion, but is no longer required before running.
+
 Eval (each case = one independent single turn):
 
 ```bash
@@ -71,7 +87,7 @@ python eval/run_eval.py
 agent.py       Agent + tools + guardrails (the whole agent, one file)
 schemas.py     typed contracts (Finding, RecordMetadata, CVEIntel, RiskScore, ...)
 trace.py       run() → ReAct steps; multi-turn (threads message_history)
-app.py         multi-turn CLI + single-query mode
+app.py         multi-turn CLI + single-query mode; auto-syncs the corpus on launch (--reset)
 tools/         search_reports (agent retrieval), analytics, cve_lookup, remediation,
                corpus loader, rag_search + retrieval_common (eval-only mechanics)
 ingest.py      production ingestion CLI (manifest → parse → map → upsert)
@@ -122,6 +138,10 @@ python ingest.py --scan     # derive the manifest from the folder tree, then ing
 python ingest.py --scan --write-manifest data/manifest.csv   # ...and save it for review
 python eval/ingest_eval.py  # 27 records (17 real + 10 lab) + filter/hybrid checks
 ```
+
+`app.py` runs the `--scan`-equivalent sync (folder tree ∪ manifest, incremental)
+automatically on startup, so these `ingest.py` commands are optional — reach for
+them for scripted/CI ingestion or a manifest-only run.
 
 Add a format → drop a `parse_<x>` in `ingestion/parsers/` and register the
 extension. Add a scanner → write `map_<scanner>` in `ingestion/mappers/scanners.py`
@@ -199,4 +219,3 @@ emits correlated structure a flat id-list can't.
 FastAPI endpoints, PDF/XML/CSV parsing, PDF report generation, and a web UI.
 The retrieval track is complete (hybrid search → graph correlation → query
 rewriting). The agent core here is a drop-in for those wrappers.
-```

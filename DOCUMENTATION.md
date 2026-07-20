@@ -63,15 +63,34 @@ OPENAI_API_KEY=sk-...             # the key matching your AGENT_MODEL provider
 downloads on first use. No API key is needed for embeddings, retrieval, BM25, or
 graph correlation — only the LLM and the live NVD CVE lookup make network calls.
 
-Then ingest the corpus so the store is populated:
+That's all — **`app.py` populates the store itself** on first launch (it auto-syncs
+the corpus before the chat opens), so no separate ingest step is required. You can
+still pre-populate it manually if you prefer:
 
 ```bash
-python ingest.py            # populates data/.chroma (gitignored)
+python ingest.py            # optional: populates data/.chroma (gitignored) up front
 ```
 
 ---
 
 ## 3. Usage
+
+**`app.py` auto-syncs the corpus on startup.** Before the chat opens it discovers
+reports from the folder tree unioned with `manifest.csv` (`collect_envelopes()`) and
+**incrementally** ingests any new or changed ones — only new/changed records are
+re-embedded, so a launch with nothing new is near-instant. Drop reports under
+`data/reports/<product>/<release>/<scanner>/[<date>/]` and just run the assistant;
+`ingest.py` is optional (scripted/CI use). Add `--reset` to drop and fully rebuild
+the store on launch:
+
+```bash
+python app.py --reset                     # clean full rebuild, then chat
+python app.py --reset "how many crits?"   # rebuild, then one-shot query
+```
+
+`--reset` is guarded: the embedding model is warmed up *before* the destructive
+wipe, so a predictable failure (offline, model not cached) aborts with the existing
+corpus intact rather than after it's been cleared.
 
 ### Single query (one independent turn)
 
@@ -146,6 +165,11 @@ python eval/graph_eval.py          # graph vs hybrid: recall + precision on asse
 The two halves meet at **one vector store**. Because analytics and the asset graph
 read the same store `search_reports` retrieves from, retrieval, counting, and
 correlation always agree about what exists.
+
+The offline pipeline is triggered automatically at the start of the online path:
+`app.py`'s `_sync_corpus()` runs `collect_envelopes()` → `sync()` on launch, so the
+store is brought up to date (incrementally) before the first query. `--reset` runs
+the same pipeline after dropping the collection for a clean rebuild.
 
 ---
 
@@ -353,8 +377,8 @@ Representative results:
 agent.py            Agent + tool registration + grounding validator (whole agent, one file)
 schemas.py          Typed contracts (Finding, RecordMetadata, CVEIntel, RiskScore, …)
 trace.py            run() → ReAct steps; multi-turn (threads message_history)
-app.py              Multi-turn CLI + single-query mode
-ingest.py           Ingestion CLI (manifest OR --scan; --reset / --dry-run / --write-manifest)
+app.py              Multi-turn CLI + single-query mode; auto-syncs the corpus on launch (--reset)
+ingest.py           Ingestion CLI + sync() (incremental, used by the launch auto-sync); manifest OR --scan; --reset / --dry-run / --write-manifest
 
 tools/
   report_search.py    search_reports — the agent's hybrid+filtered retrieval tool
@@ -370,7 +394,7 @@ tools/
 
 ingestion/
   manifest.py         ReportEnvelope + load_manifest (reads manifest.csv)
-  scan.py             scan_reports() — derive the manifest from the folder tree (+ write_manifest)
+  scan.py             scan_reports() — derive the manifest from the folder tree; collect_envelopes() (scan ∪ manifest, for launch auto-sync)
   parsers/            bytes → rows, by file extension (tabular, json_report, pdf_report)
   mappers/            rows → RecordMetadata, by scanner (scanners.py, common.py)
   record_builder.py   RecordMetadata → {id, text, metadata}
@@ -426,8 +450,9 @@ knows it.
 so the grounding guarantee holds.
 
 **Onboard a new product's reports** → drop files under
-`data/reports/<product>/<release>/<scanner>/[<date>/]` and run
-`python ingest.py --scan` — no manual manifest editing.
+`data/reports/<product>/<release>/<scanner>/[<date>/]` and just run `python app.py`
+— it auto-discovers and ingests them on launch, no manual manifest editing (or run
+`python ingest.py --scan` explicitly for a scripted ingest).
 
 ---
 
@@ -441,5 +466,7 @@ so the grounding guarantee holds.
 | `--scan` uses file mtime for the date | No date folder and no date in the filename — add one to get the real scan date. |
 | A report parses but fails at map | No mapper registered for that scanner (e.g. blackduck/checkmarx yet). |
 | Agent returns `NeedMoreInfo` | By design — the data/tools didn't support a grounded answer. |
-| Empty / stale results | Re-run `python ingest.py --reset` to rebuild `data/.chroma`. |
+| Empty / stale results | Launch with `python app.py --reset` (or `python ingest.py --reset`) to rebuild `data/.chroma`. |
+| Dropped a report but the agent doesn't see it | It must sit under `data/reports/<product>/<release>/<scanner>/[<date>/]` (or be a `manifest.csv` row) for the launch auto-sync to pick it up; a too-shallow/unknown-scanner drop is skipped with a startup warning. |
+| Removed a report but its findings persist | Auto-sync only adds/updates; run `python app.py --reset` to purge records for reports removed at the source. |
 | Auth errors from the LLM | Check `AGENT_MODEL` and the matching `*_API_KEY` in `.env`. |
