@@ -1,0 +1,6 @@
+CVE,Severity,CVSS,Package,Installed Version,Status,Description
+CVE-2025-61732,high,8.6,libxml2,2.9.14,new,Heap buffer overflow in libxml2 XML parser allows remote code execution via crafted document.
+CVE-2024-38428,critical,9.1,wget,1.21.3,new,URL parsing confusion in wget lets an attacker redirect downloads to an attacker-controlled host.
+CVE-2023-4911,high,7.8,glibc,2.35,new,Buffer overflow in the glibc dynamic loader (Looney Tunables) enables local privilege escalation.
+CVE-2024-2961,medium,5.9,glibc,2.35,new,Out-of-bounds write in the glibc ISO-2022-CN-EXT conversion module.
+CVE-2022-40674,low,3.1,expat,2.4.7,new,Use-after-free in libexpat during XML entity processing.

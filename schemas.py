@@ -41,6 +41,71 @@ class Finding(BaseModel):
     location: str | None = Field(default=None, description="File/line, package version, or port")
 
 
+class RecordMetadata(BaseModel):
+    """One ingested vector-DB record's metadata — the production shape.
+
+    This is the target of the ingestion pipeline (ingestion/): each row of a real
+    scanner report (CSV / Excel / HTML / PDF) becomes ONE record whose `metadata`
+    is exactly this model. It mirrors the record template — envelope fields
+    (product / release / scanner / scan) come from the manifest, finding fields
+    (component / finding_id / severity / cvss) are parsed from the report file.
+
+    Chroma metadata must be scalar, so `cve_ids` (a list here, the source of
+    truth) is flattened to a delimited string when written to the store — see
+    ingestion/record_builder.build_record.
+    """
+
+    # --- envelope (from data/manifest.csv) ---
+    product_name: str
+    release_version: str = ""
+    scanner: str = Field(description="e.g. 'Twistlock', 'Trivy', 'Nessus'")
+    scan_category: str = Field(description="e.g. 'CONTAINER', 'SCA', 'HOST', 'SAST', 'SECRET'")
+    scan_date: str = Field(description="ISO date the report was produced, 'YYYY-MM-DD'")
+    scan_label: str = Field(default="", description="Human display label for the scan, e.g. '24-02-2026'")
+    report_file: str = Field(description="Source report filename this record came from")
+
+    # --- finding (parsed from the report file) ---
+    component_name: str
+    component_version: str = ""
+    component_type: str = Field(default="", description="e.g. 'container_image', 'repository', 'host'")
+    finding_id: str = Field(description="Scanner's id for the finding — a CVE id or a plugin/rule id")
+    severity: Severity
+    cvss_score: float | None = Field(default=None, ge=0, le=10)
+    cve_ids: list[str] = Field(default_factory=list)
+    status: str = Field(default="new", description="'new' | 'recurring' | 'resolved'")
+
+    # Finding-class + human fields. Carried so a RecordMetadata can be projected
+    # losslessly to a Finding (to_finding) — the graph/analytics tools key on
+    # `category` (e.g. 'exposed_secret'), so it must survive ingestion.
+    title: str = Field(default="", description="Short human title for the finding")
+    category: str | None = Field(
+        default=None, description="Finding class, e.g. 'exposed_secret', 'vulnerable_dependency'"
+    )
+    location: str | None = Field(default=None, description="File/line, package, or port")
+
+    # Used only to build the embedding text; NOT written to Chroma metadata.
+    description: str = Field(default="", exclude=True)
+
+    def to_finding(self) -> "Finding":
+        """Project to a Finding — the model the analytics/graph/retrieval tools use.
+
+        RecordMetadata is the canonical ingested record; Finding is the working
+        view over it. One source of truth (the ingested corpus), two shapes.
+        """
+        return Finding(
+            id=self.finding_id,
+            scanner=self.scanner,
+            severity=self.severity,
+            title=self.title or self.description[:80] or self.finding_id,
+            description=self.description or self.title,
+            asset=self.component_name or self.product_name,
+            category=self.category,
+            cve=self.cve_ids[0] if self.cve_ids else None,
+            cvss=self.cvss_score,
+            location=self.location,
+        )
+
+
 class CVEIntel(BaseModel):
     """External enrichment for one CVE. Output of cve_lookup() — the un-fakeable tool.
 

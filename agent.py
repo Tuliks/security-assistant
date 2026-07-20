@@ -25,8 +25,8 @@ from schemas import NeedMoreInfo, SecurityAnswer
 from tools.analytics import average_cvss, calculate_risk, count_critical, extract_cves
 from tools.asset_graph import correlate_asset, riskiest_assets
 from tools.cve_lookup import cve_lookup
-from tools.rag_search import rag_search
 from tools.remediation import suggest_remediation
+from tools.report_search import search_reports
 
 # OpenAI by default (matches the other labs). Swap to e.g. "openai:gpt-5.1" or
 # "anthropic:claude-opus-4-8" via AGENT_MODEL — Pydantic AI reads the key from env.
@@ -38,8 +38,15 @@ You are a security analyst assistant. Security engineers upload scanner reports
 and prioritize them, enrich CVEs with external intelligence, and suggest fixes.
 
 How to work:
-- To learn WHAT findings exist, call rag_search. Cite the findings you use; never
-  invent a finding, an asset name, or a CVE that rag_search didn't return.
+- To learn WHAT findings exist, call search_reports — hybrid retrieval over the
+  ingested corpus. Cite the findings you use; never invent a finding, an asset
+  name, or a CVE that search_reports didn't return. When the question names a
+  PRODUCT, SCANNER, RELEASE, or SCAN TYPE (e.g. "Trivy findings in Ivan",
+  "critical CONTAINER issues"), pass the matching filters (product / scanner /
+  severity / scan_category / status) so retrieval is scoped instead of ranking
+  every product's findings together. Retrieved records carry finding_id, cve_ids,
+  component_name, and cvss_score — use extract_cves on finding_id/cve_ids if you
+  need the CVE for cve_lookup.
 - To see the FULL exposure on one asset (every finding across scanners), or to
   rank assets by combined risk, use correlate_asset / riskiest_assets. Scanners
   spell the same asset differently (payments-api vs payments-api:latest vs
@@ -80,7 +87,7 @@ agent = Agent(
 # model sends type-invalid arguments, only that tool's counter advances. This is
 # separate from the run-wide UsageLimits below. All are plain (no RunContext),
 # so we register with tool_plain — same idiom as the travel lab.
-agent.tool_plain(retries=2)(rag_search)
+agent.tool_plain(retries=2)(search_reports)
 agent.tool_plain(retries=1)(correlate_asset)
 agent.tool_plain(retries=1)(riskiest_assets)
 agent.tool_plain(retries=1)(count_critical)
@@ -110,7 +117,7 @@ def answer_is_grounded(ctx: RunContext, output: SecurityAnswer | NeedMoreInfo):
             raise ModelRetry("The answer is too short to be useful — summarize what the tools returned.")
         if not output.tools_used:
             raise ModelRetry(
-                "You returned an answer with no tools_used. Ground it: call rag_search / analytics / "
+                "You returned an answer with no tools_used. Ground it: call search_reports / analytics / "
                 "cve_lookup first, or return NeedMoreInfo if nothing supports an answer."
             )
     return output

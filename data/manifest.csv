@@ -1,0 +1,8 @@
+report_file,product_name,release_version,scanner,scan_category,scan_date,component_name,component_version,component_type,mapper
+reports/DPC-Nutanix/Edna(01.02.00.00)/Nessus/2026-02-20/edna-hosts.html,DPC-Nutanix,Edna(01.02.00.00),Nessus,HOST,2026-02-20,,,host,
+reports/Ivan/Dana(01.01.00.00)/Nessus/2026-02-24/ivan-hosts.pdf,Ivan,Dana(01.01.00.00),Nessus,HOST,2026-02-24,,,host,
+reports/Ivan/Dana(01.01.00.00)/Trivy/2026-02-24/payments-api.xlsx,Ivan,Dana(01.01.00.00),Trivy,SCA,2026-02-24,payments-api,,repository,
+reports/Ivan/Dana(01.01.00.00)/Twistlock/2026-02-24/mcp-cce-2.4.0.csv,Ivan,Dana(01.01.00.00),Twistlock,CONTAINER,2026-02-24,mcp-cce,2.4.0,container_image,
+gitleaks.json,Acme,,Gitleaks,SECRET,2026-07-15,,,repository,lab_json
+trivy.json,Acme,,Trivy,SCA,2026-07-16,,,container_image,lab_json
+nessus.json,Acme,,Nessus,NETWORK,2026-07-17,,,host,lab_json

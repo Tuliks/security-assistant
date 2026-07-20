@@ -73,7 +73,8 @@ def print_banner():
 ╚══════════════════════════════════════════════════════════════╝{COLORS['reset']}
 
 {COLORS['dim']}An agent that decides which tools to use:
-  🔎  rag_search        — find findings across the ingested reports
+  🔎  search_reports    — hybrid + filtered search over the ingested corpus
+  🕸️  correlate_asset   — every finding on one asset / riskiest_assets
   📊  analytics         — count_critical / average_cvss / extract_cves / calculate_risk
   🌐  cve_lookup        — enrich a CVE from NIST NVD (live)
   🛠️  suggest_remediation — playbook fixes by finding category

@@ -9,7 +9,7 @@
   {
     "id": "retrieval_secrets",
     "query": "Which repositories contain exposed secrets?",
-    "expected_tools": ["rag_search"],
+    "expected_tools": ["search_reports"],
     "expected_output": "SecurityAnswer",
     "note": "Retrieval — find the gitleaks findings and name the repos."
   },
@@ -23,14 +23,14 @@
   {
     "id": "chained_risk",
     "query": "Find the worst vulnerable dependency, look up its CVE, and score its risk.",
-    "expected_tools": ["rag_search", "cve_lookup", "calculate_risk"],
+    "expected_tools": ["search_reports", "cve_lookup", "calculate_risk"],
     "expected_output": "SecurityAnswer",
     "note": "Chain: retrieve -> enrich -> compute risk."
   },
   {
     "id": "remediation",
     "query": "How do I fix the SQL injection finding?",
-    "expected_tools": ["rag_search", "suggest_remediation"],
+    "expected_tools": ["search_reports", "suggest_remediation"],
     "expected_output": "SecurityAnswer",
     "note": "Locate the finding, then pull the remediation playbook."
   },

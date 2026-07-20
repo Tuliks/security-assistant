@@ -28,11 +28,30 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.asset_graph import correlate_asset  # noqa: E402
-from tools.rag_search import rag_search  # noqa: E402
+from tools.asset_graph import _AssetGraph  # noqa: E402
+from tools.corpus import load_findings  # noqa: E402
+from tools.rag_search import _HybridIndex, expand_query  # noqa: E402
+from tools.retrieval_common import rrf  # noqa: E402
 
 CASES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "graph_cases.json")
 K = 5
+
+# Mechanics demo (graph correlation vs hybrid) over a hand-verified golden set, so
+# it runs on the original lab findings (ingested under product 'Acme'), isolated
+# from the full unified corpus the agent uses.
+_FIXTURE = load_findings(products={"Acme"})
+_GRAPH = _AssetGraph(_FIXTURE)
+_INDEX = _HybridIndex(_FIXTURE)
+
+
+def _hybrid_ids(query: str) -> list[str]:
+    q = expand_query(query)
+    return rrf([_INDEX.bm25_ranking(q), _INDEX.semantic_ranking(q)])[:K]
+
+
+def _graph_ids(asset: str) -> list[str]:
+    canonical = _GRAPH.resolve(asset)
+    return [f.id for f in _GRAPH.exposure(canonical).findings] if canonical else []
 
 
 def recall(retrieved_ids: list[str], expected: list[str]) -> float:
@@ -56,8 +75,8 @@ def main() -> None:
     print("\n=== Per-case: recall / precision of the full correlated set ===")
     for c in cases:
         runs = {
-            "hybrid": [f.id for f in rag_search(c["query"], limit=K)],
-            "graph": [f.id for f in correlate_asset(c["asset"]).findings],
+            "hybrid": _hybrid_ids(c["query"]),
+            "graph": _graph_ids(c["asset"]),
         }
         print(f"\n  {c['id']}  (expected {c['expected_ids']})")
         for name, ids in runs.items():

@@ -7,3 +7,9 @@ sentence-transformers>=2.2
 chromadb>=0.4
 rank-bm25>=0.2
 numpy>=1.24
+# Production ingestion (ingest.py): parse CSV / Excel / HTML / PDF scanner reports
+pandas>=2.0
+openpyxl>=3.1        # .xlsx
+beautifulsoup4>=4.12  # HTML tables (pandas.read_html backend)
+lxml>=5.0
+pdfplumber>=0.11     # PDF table extraction

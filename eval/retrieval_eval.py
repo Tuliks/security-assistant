@@ -22,10 +22,25 @@ import sys
 # Allow "python eval/retrieval_eval.py" from the repo root.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.rag_search import _get_index, _hybrid_search, _keyword_rank, expand_query, rag_search  # noqa: E402
+from tools.corpus import load_findings  # noqa: E402
+from tools.rag_search import _HybridIndex, _keyword_rank, expand_query  # noqa: E402
+from tools.retrieval_common import rrf  # noqa: E402
 
 CASES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "retrieval_cases.json")
 K = 5
+
+# This is a MECHANICS demo (hybrid vs keyword) over a hand-verified golden set, so
+# it runs on a fixed corpus subset — the original lab findings, ingested under
+# product 'Acme' — not the whole unified corpus. The agent still retrieves over
+# everything via search_reports; here we isolate the 10 findings the goldens were
+# written against so the comparison stays controlled.
+_FIXTURE = load_findings(products={"Acme"})
+_INDEX = _HybridIndex(_FIXTURE)
+
+
+def _hybrid_ids(query: str, expand: bool) -> list[str]:
+    q = expand_query(query) if expand else query
+    return rrf([_INDEX.bm25_ranking(q), _INDEX.semantic_ranking(q)])[:K]
 
 
 def recall_at_k(retrieved_ids: list[str], expected: list[str], k: int = K) -> float:
@@ -50,13 +65,12 @@ def main() -> None:
         cases = json.load(f)
 
     # keyword baseline -> hybrid (no query expansion) -> hybrid + rewrite.
-    # _hybrid_search is the fusion core over the query as-given; rag_search runs
-    # the same core over the acronym-expanded query, so the two columns isolate
-    # exactly what query rewriting adds.
+    # All three run over the same fixed fixture; the two hybrid columns isolate
+    # exactly what query rewriting (expand_query) adds on top of plain hybrid.
     runners = {
-        "keyword": lambda q: _ids(_keyword_rank(q, limit=K)),
-        "hybrid": lambda q: _ids(_hybrid_search(q, None, K)),
-        "hybrid+rw": lambda q: _ids(rag_search(q, limit=K)),
+        "keyword": lambda q: _ids(_keyword_rank(q, limit=K, findings=_FIXTURE)),
+        "hybrid": lambda q: _hybrid_ids(q, expand=False),
+        "hybrid+rw": lambda q: _hybrid_ids(q, expand=True),
     }
 
     agg = {name: {"recall": [], "mrr": []} for name in runners}
@@ -84,12 +98,11 @@ def main() -> None:
     # 'sqli'->SQL injection, 'creds'->credentials, so the FUSED result doesn't move.
     # Query expansion is a *lexical* fix — its effect is only visible on the BM25
     # arm in isolation. Measure it there so the mechanism is a number, not a claim.
-    index = _get_index()
     raw_rec = exp_rec = 0.0
     print("\n=== Lexical-only (BM25): query expansion's effect on recall ===")
     for c in cases:
-        raw = index.bm25_ranking(c["query"])[:K]
-        exp = index.bm25_ranking(expand_query(c["query"]))[:K]
+        raw = _INDEX.bm25_ranking(c["query"])[:K]
+        exp = _INDEX.bm25_ranking(expand_query(c["query"]))[:K]
         r = recall_at_k(raw, c["expected_ids"], K)
         e = recall_at_k(exp, c["expected_ids"], K)
         raw_rec += r

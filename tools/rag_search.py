@@ -17,19 +17,21 @@ before it can cite, so it can't fabricate findings from its weights.
 
 from __future__ import annotations
 
-import re
-
 from pydantic_ai import ModelRetry
 from rank_bm25 import BM25Okapi
 
 from schemas import Finding
 from tools.corpus import load_findings
 from tools.embedder import embed_query, embed_texts
+from tools.retrieval_common import (  # shared with the persistent-store hybrid
+    content_tokens as _content_tokens,
+    expand_query,
+    rrf as _rrf,
+    tokens as _tokens,
+)
 from tools.vector_store import ChromaStore
 
-_WORD = re.compile(r"[a-z0-9]+")
 _VALID_SEVERITIES = ("critical", "high", "medium", "low", "info")
-_RRF_K = 60  # standard RRF constant; damps the weight of very high ranks
 
 # Semantic search always returns its top-k, however irrelevant — so an out-of-scope
 # query ("weather in Paris") would otherwise pull in random findings and defeat the
@@ -39,54 +41,8 @@ _RRF_K = 60  # standard RRF constant; damps the weight of very high ranks
 # semantic candidates (and, with no BM25 overlap either, rag_search returns []).
 _SEMANTIC_MAX_DISTANCE = 0.82
 
-
-# Common English connectors carry no signal but appear in many finding texts, so
-# BM25 would otherwise "match" an off-topic query on a shared "in"/"the". Dropped
-# from the *lexical* side only (the semantic side embeds full sentences, and the
-# keyword baseline is left untouched for a fair comparison).
-_STOPWORDS = frozenset(
-    "a an and are as at be but by for from how i if in into is it its of on or "
-    "that the their this to via was were what when where which who with your our "
-    "do does can could would should you we they he she them us".split()
-)
-
-
-# Query expansion: analysts type acronyms and shorthand ("sqli", "creds", "rce")
-# that the finding text spells out ("SQL injection", "credentials", "remote code
-# execution"). BM25 tokenizes "sqli" and "sql"/"injection" as *different* tokens,
-# so the lexical side misses the match entirely; expanding the query bridges the
-# vocabulary gap before ranking. Deterministic (no LLM), so it's free and testable.
-# General security shorthand, NOT tuned to the eval set.
-_EXPANSIONS = {
-    "rce": "remote code execution",
-    "sqli": "sql injection",
-    "xss": "cross site scripting",
-    "ssrf": "server side request forgery",
-    "csrf": "cross site request forgery",
-    "xxe": "xml external entity",
-    "cred": "credentials",
-    "creds": "credentials",
-    "mfa": "multi factor authentication",
-    "2fa": "two factor authentication",
-    "privesc": "privilege escalation",
-    "log4shell": "log4j remote code execution",
-    "heartbleed": "openssl memory disclosure",
-    "exfil": "exfiltration",
-    "misconfig": "misconfiguration",
-    "dep": "dependency",
-    "deps": "dependencies",
-    "vuln": "vulnerability",
-    "vulns": "vulnerabilities",
-}
-
-
-def _tokens(text: str) -> list[str]:
-    return _WORD.findall(text.lower())
-
-
-def _content_tokens(text: str) -> list[str]:
-    """Tokens with stopwords removed — the lexical (BM25) view of a text."""
-    return [t for t in _WORD.findall(text.lower()) if t not in _STOPWORDS]
+# Query expansion, tokenization, and RRF now live in tools.retrieval_common so the
+# persistent-store hybrid shares one definition — imported above.
 
 
 def _finding_text(f: Finding) -> str:
@@ -142,36 +98,6 @@ def _get_index() -> _HybridIndex:
     if _INDEX is None:
         _INDEX = _HybridIndex(load_findings())
     return _INDEX
-
-
-def _rrf(rankings: list[list[str]], k: int = _RRF_K) -> list[str]:
-    """Fuse ranked id-lists with Reciprocal Rank Fusion, best first.
-
-    score(id) = Σ 1 / (k + rank), rank starting at 1. Rank-based, so it doesn't
-    matter that BM25 and Chroma report scores on different scales (or that Chroma
-    reports distance, not similarity). An id present in either list is kept.
-    """
-    scores: dict[str, float] = {}
-    for ranking in rankings:
-        for rank, fid in enumerate(ranking, start=1):
-            scores[fid] = scores.get(fid, 0.0) + 1.0 / (k + rank)
-    return sorted(scores, key=lambda fid: scores[fid], reverse=True)
-
-
-def expand_query(query: str) -> str:
-    """Append spelled-out forms of any security acronyms/shorthand in the query.
-
-    "sqli in checkout" -> "sqli in checkout sql injection". The original terms are
-    kept (so exact matches still fire) and the expansions are added, widening the
-    surface both BM25 and the embedding see. A query with no known shorthand is
-    returned unchanged — so out-of-scope queries don't gain spurious terms and the
-    abstention path is preserved.
-    """
-    lower = query.lower()
-    extra = [
-        exp for term, exp in _EXPANSIONS.items() if re.search(rf"\b{re.escape(term)}\b", lower)
-    ]
-    return f"{query} {' '.join(extra)}" if extra else query
 
 
 def _hybrid_search(query: str, severity: str | None, limit: int) -> list[Finding]:
@@ -235,9 +161,15 @@ def rag_search(query: str, severity: str | None = None, limit: int = 5) -> list[
 # Not used by the agent.
 
 
-def _keyword_rank(query: str, severity: str | None = None, limit: int = 5) -> list[Finding]:
-    """The original token-overlap retrieval — retained only as an eval baseline."""
-    findings = load_findings()
+def _keyword_rank(
+    query: str, severity: str | None = None, limit: int = 5, findings: list[Finding] | None = None
+) -> list[Finding]:
+    """The original token-overlap retrieval — retained only as an eval baseline.
+
+    `findings` lets the retrieval eval pass a fixed corpus subset; defaults to the
+    full corpus.
+    """
+    findings = load_findings() if findings is None else findings
     if severity is not None:
         sev = severity.lower()
         findings = [f for f in findings if f.severity == sev]
