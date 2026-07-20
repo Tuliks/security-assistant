@@ -161,7 +161,7 @@ raw file --[parser]--> rows --[mapper]--> RecordMetadata --[builder]--> {id,text
 
 ### 5.1 The manifest (the envelope)
 
-A Trivy Excel lists CVEs but nothing inside it says "product Ivan, release Dana,
+A Trivy Excel lists CVEs but nothing inside it says "product ProductB, release ReleaseB.1,
 scanned 2026-02-24 by Trivy." That **envelope** is declared, not parsed. Two ways
 to provide it:
 
@@ -170,8 +170,8 @@ to provide it:
 | column | meaning |
 |---|---|
 | `report_file` | path relative to `data/` |
-| `product_name` | e.g. `Ivan` |
-| `release_version` | e.g. `Dana(01.01.00.00)` (may be blank) |
+| `product_name` | e.g. `ProductB` |
+| `release_version` | e.g. `ReleaseB.1` (may be blank) |
 | `scanner` | e.g. `Trivy` → selects the mapper |
 | `scan_category` | `SCA` / `CONTAINER` / `HOST` / `SAST` / `SECRET` |
 | `scan_date` | `YYYY-MM-DD` |
@@ -261,7 +261,7 @@ security shorthand (`sqli`→`sql injection`, `creds`→`credentials`, …) so t
 lexical arm doesn't miss on jargon. Deterministic — no LLM.
 
 **Filters.** Retrieval can be scoped by product / scanner / severity /
-scan_category / status — e.g. "Twistlock findings for mcp-cce in Ivan."
+scan_category / status — e.g. "Twistlock findings for mcp-cce in ProductB."
 
 **Graph correlation.** The risk that matters is often *relational* — several
 findings, from different scanners, on the **same asset**. Scanners spell assets

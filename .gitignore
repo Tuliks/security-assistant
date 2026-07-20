@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 data/.chroma/
+llm-learnings.md
+prompt.md

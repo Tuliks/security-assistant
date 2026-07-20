@@ -26,7 +26,7 @@ import re
 import time
 from datetime import datetime
 
-from ingestion.manifest import DATA_DIR, ReportEnvelope
+from ingestion.manifest import DATA_DIR, MANIFEST_PATH, ReportEnvelope, load_manifest
 
 REPORTS_DIR = os.path.join(DATA_DIR, "reports")
 
@@ -75,7 +75,7 @@ def parse_component(filename: str) -> tuple[str, str]:
 
     'payments-api-2.4.0.csv'      -> ('payments-api', '2.4.0')
     'mcp-cce-2026-02-24.csv'      -> ('mcp-cce', '')       (date stripped, no version)
-    'edna-hosts.html'             -> ('edna-hosts', '')
+    'releasea.1-hosts.html'       -> ('releasea.1-hosts', '')
     """
     stem = os.path.splitext(filename)[0]
     # strip any date/week token so it isn't mistaken for a version
@@ -166,6 +166,26 @@ MANIFEST_COLUMNS = [
     "report_file", "product_name", "release_version", "scanner", "scan_category",
     "scan_date", "component_name", "component_version", "component_type", "mapper",
 ]
+
+
+def collect_envelopes() -> tuple[list[ReportEnvelope], list[str]]:
+    """Every report to ingest = folder-scan drops UNION curated manifest rows.
+
+    The zero-manual path: a security engineer drops reports under the convention
+    `data/reports/<product>/<release>/<scanner>/[<date>/]<file>` and they're picked
+    up automatically — no manifest editing. The manifest is still honored for rows
+    a folder-walk can't reconstruct (e.g. the top-level `lab_json` reports, or a
+    mapper/component override); on a path collision the curated manifest row WINS.
+
+    Returns (envelopes, warnings) — warnings surface files the scan had to skip or
+    couldn't fully infer, so a misplaced drop isn't silently ignored.
+    """
+    scanned, warnings = scan_reports()
+    by_file: dict[str, ReportEnvelope] = {e.report_file: e for e in scanned}
+    if os.path.exists(MANIFEST_PATH):
+        for e in load_manifest():  # curated rows override scanned ones
+            by_file[e.report_file] = e
+    return list(by_file.values()), warnings
 
 
 def write_manifest(envelopes: list[ReportEnvelope], path: str) -> None:

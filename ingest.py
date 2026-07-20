@@ -65,6 +65,44 @@ def ingest(
     return total
 
 
+def sync(
+    envelopes: list[ReportEnvelope] | None = None,
+    quiet: bool = True,
+    store: ReportStore | None = None,
+) -> int:
+    """Bring the store in line with the reports, embedding ONLY new/changed records.
+
+    Cheap enough to call on every app start: parse + map + build are fast (no model),
+    and a record is embedded/upserted only when its id is absent OR its text differs
+    from what's stored. Nothing changed -> nothing embedded -> near-instant.
+
+    `envelopes` defaults to the manifest; pass `collect_envelopes()` (scan ∪ manifest)
+    for the zero-manual drop-a-file path. `store` lets the caller reuse an existing
+    ReportStore instance (e.g. the agent's) so a prior reset() on it is honored and
+    handles don't go stale. Idempotent, like ingest(), but skips the re-embed of
+    unchanged records. Returns the number of records written. Does not delete records
+    for reports removed at the source (reset the store, or `python ingest.py --reset`).
+    """
+    if envelopes is None:
+        envelopes = load_manifest()
+    if store is None:
+        store = ReportStore()
+    existing = store.existing_texts()
+    to_upsert: list[dict] = []
+    for env in envelopes:
+        try:
+            records = [build_record(r) for r in map_report(parse(env.abs_path), env)]
+        except Exception:  # a bad report shouldn't block syncing the rest
+            continue
+        to_upsert.extend(r for r in records if existing.get(r["id"]) != r["text"])
+
+    if to_upsert:
+        store.upsert(to_upsert)
+    if not quiet:
+        print(f"Corpus sync: {len(to_upsert)} new/changed record(s); {store.count} total.")
+    return len(to_upsert)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Ingest scanner reports into the vector store.")
     ap.add_argument("--reset", action="store_true", help="clear the collection before ingesting")

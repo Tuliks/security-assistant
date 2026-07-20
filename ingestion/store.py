@@ -11,7 +11,7 @@ dated reports — so it persists to disk and is updated incrementally.
   stored embeddings (semantic), and applies the record template's metadata filters
   (product / scanner / severity / category / status) as a Chroma `where` — so
   retrieval is both high-quality AND scopable to "Twistlock findings for mcp-cce
-  in Ivan". Embeddings are computed once at ingest and reused; only the (cheap)
+  in ProductB". Embeddings are computed once at ingest and reused; only the (cheap)
   BM25 index is rebuilt from the stored documents at query time.
 """
 
@@ -39,7 +39,7 @@ _COLLECTION = "reports"
 def build_where(filters: dict | None) -> dict | None:
     """Translate a flat filter dict into a Chroma `where` clause.
 
-    Scalar value -> equality ({"product_name": "Ivan"}); list value -> membership
+    Scalar value -> equality ({"product_name": "ProductB"}); list value -> membership
     ({"severity": {"$in": ["critical", "high"]}}). Multiple conditions are
     combined with $and (Chroma requires the operator for >1 condition). Mirrors
     the record template's metadata-filter examples.
@@ -159,11 +159,17 @@ class ReportStore:
         by_id = {i: metas[n] for n, i in enumerate(ids)}
         return [{"id": fid, "metadata": by_id[fid]} for fid in fused[:k] if fid in by_id]
 
+    def existing_texts(self) -> dict[str, str]:
+        """{id: document text} for every stored record — used by sync to embed
+        only records that are new or whose text changed (cheap change detection)."""
+        got = self.collection.get(include=["documents"])
+        return dict(zip(got["ids"], got["documents"]))
+
     def records(self, filters: dict | None = None) -> list[dict]:
         """Every record's metadata matching `filters` (no ranking) — for counting.
 
         Unlike hybrid_search (relevance-ranked, query-driven), this enumerates the
-        full filtered set, e.g. "all records where product_name == 'Ivan'".
+        full filtered set, e.g. "all records where product_name == 'ProductB'".
         """
         got = self.collection.get(where=build_where(filters) or None, include=["metadatas"])
         return got["metadatas"]

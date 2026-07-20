@@ -83,7 +83,7 @@ Two independent halves that meet at the vector store:
 | **Hybrid retrieval** (BM25 + embeddings, RRF-fused) | Exact ids (CVE, asset) need lexical; fuzzy topics need semantic. Neither alone suffices | Two indexes to maintain; more moving parts than pure-vector |
 | **Local embeddings** (`all-mpnet-base-v2`) | No API key, no per-query cost, private | ~400 MB model download; CPU-bound first run |
 | **Parser/mapper split** | Same scanner exports many formats; same format used by many scanners | Two registries instead of one; slight indirection |
-| **Manifest as the envelope** | A Trivy Excel can't say "I'm product Ivan, release Dana, scanned 2026-02-24" | Someone/something must supply it → solved by `--scan` |
+| **Manifest as the envelope** | A Trivy Excel can't say "I'm product ProductB, release ReleaseB.1, scanned 2026-02-24" | Someone/something must supply it → solved by `--scan` |
 | **`--scan` derives manifest from folders** | Hand-writing a manifest doesn't scale to many product×release×scanner×week drops | Requires a strict folder convention; a few fields (category, date) need inference |
 | **Graph correlation** hand-rolled | Cross-scanner asset risk is *relational*; flat retrieval bleeds in wrong-asset lookalikes | Custom code to maintain vs. a library |
 | **Deterministic analytics tools** | Counts/averages/CVE extraction must be exact, never an LLM guess | Model can't "reason" over them — must call the tool |
@@ -103,7 +103,7 @@ the assistant safe to trust in a security context.
 
 ```
 data/reports/<product>/<release>/<scanner>/[<date>/]<report.ext>
-              Ivan      Dana(…)     Twistlock  2026-02-24 mcp-cce-2.4.0.csv
+              ProductB      ReleaseB.1(…)     Twistlock  2026-02-24 mcp-cce-2.4.0.csv
 ```
 
 - `product`, `release`, `scanner` → path segments.

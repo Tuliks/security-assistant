@@ -1,15 +1,15 @@
 """The manifest — envelope metadata a report file can't self-describe.
 
 A Trivy Excel export lists CVEs and packages, but nothing inside it says "this is
-product Ivan, release Edna, scanned 2026-02-24 by Trivy." That envelope has to
+product ProductB, release ReleaseA.1, scanned 2026-02-24 by Trivy." That envelope has to
 come from somewhere; data/manifest.csv is the source of truth, one row per report
 file. This decouples "what's in the file" (parsed) from "which product/scan it
 belongs to" (declared).
 
 manifest.csv columns:
-    report_file        path relative to data/ (e.g. reports/Ivan/Trivy/payments-api.xlsx)
-    product_name       e.g. Ivan
-    release_version    e.g. Edna(01.02.00.00)   (may be blank)
+    report_file        path relative to data/ (e.g. reports/ProductB/Trivy/payments-api.xlsx)
+    product_name       e.g. ProductB
+    release_version    e.g. ReleaseA.1   (may be blank)
     scanner            e.g. Trivy               -> selects the mapper
     scan_category      e.g. SCA | CONTAINER | HOST | SAST | SECRET
     scan_date          YYYY-MM-DD

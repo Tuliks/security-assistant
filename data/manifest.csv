@@ -1,8 +1,12 @@
 report_file,product_name,release_version,scanner,scan_category,scan_date,component_name,component_version,component_type,mapper
-reports/DPC-Nutanix/Edna(01.02.00.00)/Nessus/2026-02-20/edna-hosts.html,DPC-Nutanix,Edna(01.02.00.00),Nessus,HOST,2026-02-20,,,host,
-reports/Ivan/Dana(01.01.00.00)/Nessus/2026-02-24/ivan-hosts.pdf,Ivan,Dana(01.01.00.00),Nessus,HOST,2026-02-24,,,host,
-reports/Ivan/Dana(01.01.00.00)/Trivy/2026-02-24/payments-api.xlsx,Ivan,Dana(01.01.00.00),Trivy,SCA,2026-02-24,payments-api,,repository,
-reports/Ivan/Dana(01.01.00.00)/Twistlock/2026-02-24/mcp-cce-2.4.0.csv,Ivan,Dana(01.01.00.00),Twistlock,CONTAINER,2026-02-24,mcp-cce,2.4.0,container_image,
+reports/ProductA/ReleaseA.1/Nessus/2026-02-20/releasea.1-hosts.html,ProductA,ReleaseA.1,Nessus,HOST,2026-02-20,,,host,
+reports/ProductB/ReleaseB.1/Nessus/2026-02-24/productb-hosts.pdf,ProductB,ReleaseB.1,Nessus,HOST,2026-02-24,,,host,
+reports/ProductB/ReleaseB.1/Trivy/2026-02-24/payments-api.xlsx,ProductB,ReleaseB.1,Trivy,SCA,2026-02-24,payments-api,,repository,
+reports/ProductB/ReleaseB.1/Twistlock/2026-02-24/cce-container-2.4.0.csv,ProductB,ReleaseB.1,Twistlock,CONTAINER,2026-02-24,mcp-cce,2.4.0,container_image,
+reports/ProductA/ReleaseA.1/Blackduck/2026-02-20/producta-oss-inventory.csv,ProductA,ReleaseA.1,Blackduck,SCA,2026-02-20,producta,,repository,
+reports/ProductB/ReleaseB.1/Blackduck/2026-02-24/payments-oss-inventory.csv,ProductB,ReleaseB.1,Blackduck,SCA,2026-02-24,payments-api,,repository,
+reports/ProductB/ReleaseB.1/Twistlock/2026-02-24/payments-api-image-1.8.0.csv,ProductB,ReleaseB.1,Twistlock,CONTAINER,2026-02-24,payments-api-image,,container_image,
+reports/ProductA/ReleaseA.1/Gitleaks/2026-02-20/producta-secrets.json,ProductA,ReleaseA.1,Gitleaks,SECRET,2026-02-20,producta,,repository,
 gitleaks.json,Acme,,Gitleaks,SECRET,2026-07-15,,,repository,lab_json
 trivy.json,Acme,,Trivy,SCA,2026-07-16,,,container_image,lab_json
 nessus.json,Acme,,Nessus,NETWORK,2026-07-17,,,host,lab_json

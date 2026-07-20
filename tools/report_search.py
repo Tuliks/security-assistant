@@ -5,7 +5,7 @@ is ingested into one persistent store (ingest.py). search_reports runs HYBRID
 retrieval over it (BM25 + embeddings, fused with RRF — good at both exact CVE/asset
 ids and fuzzy topics) and adds the record template's metadata filters: product /
 scanner / severity / scan_category / status. So the agent can scope a question to
-"Twistlock findings for mcp-cce in Ivan" instead of searching everything at once,
+"Twistlock findings for mcp-cce in ProductB" instead of searching everything at once,
 and the corpus it searches is the same one count_critical and correlate_asset see.
 
 Returns typed RecordMetadata, so the model can cite product/component/finding_id
@@ -69,7 +69,7 @@ def search_reports(
 
     Args:
         query: What to look for — a topic, component, CVE, or description.
-        product: Restrict to one product, e.g. 'Ivan' (exact match).
+        product: Restrict to one product, e.g. 'ProductB' (exact match).
         scanner: Restrict to one scanner, e.g. 'Trivy', 'Nessus', 'Twistlock'.
         severity: One of critical/high/medium/low/info.
         scan_category: e.g. 'CONTAINER', 'SCA', 'HOST', 'SAST', 'SECRET'.

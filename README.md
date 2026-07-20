@@ -112,7 +112,7 @@ manifest.csv row → parse(file) → map_report(rows) → build_record → Repor
 - **ReportStore** — a *persistent* Chroma collection (`data/.chroma`, gitignored)
   with **metadata-filtered** search: `product` / `scanner` / `severity` (`$in`) /
   compound (`$and`) filters, so retrieval can be scoped to "Twistlock findings for
-  mcp-cce in Ivan".
+  mcp-cce in ProductB".
 
 ```bash
 python ingest.py            # incremental upsert of everything in the manifest

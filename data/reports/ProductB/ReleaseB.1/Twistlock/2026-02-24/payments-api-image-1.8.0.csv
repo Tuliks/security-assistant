@@ -1,0 +1,201 @@
+CVE,Severity,CVSS,Package,Installed Version,Status,Description
+CVE-2024-6387,high,8.1,openssh-server,9.2p1,new,regreSSHion: signal-handler race condition in OpenSSH sshd allows unauthenticated remote code execution as root on glibc-based Linux.
+CVE-2023-38408,critical,9.8,openssh-client,8.9p1,fixed,Remote code execution in ssh-agent PKCS#11 forwarding via a crafted agent-forwarding request.
+CVE-2023-51385,medium,6.5,openssh-server,8.4p1,new,OS command injection via ProxyCommand when an untrusted user/hostname contains shell metacharacters.
+CVE-2022-3602,high,7.5,openssl,3.0.5,new,X.509 email address 4-byte stack buffer overflow during punycode decoding of a crafted certificate.
+CVE-2022-3786,high,7.5,openssl,3.0.6,new,"X.509 email address variable-length buffer overflow in punycode decoding, causing denial of service."
+CVE-2023-0286,high,7.4,openssl,1.1.1n,new,X.400 address type confusion in X.509 GeneralName allows reading/writing arbitrary memory.
+CVE-2014-0160,high,7.5,openssl,1.0.1f,new,Heartbleed: TLS heartbeat over-read discloses up to 64KB of process memory including private keys.
+CVE-2016-2107,medium,5.9,openssl,1.0.2,new,Padding-oracle in AES-NI CBC MAC check allows a MITM to decrypt TLS traffic (Lucky-13 variant).
+CVE-2014-6271,critical,9.8,bash,4.3,new,"Shellshock: bash evaluates trailing code in exported function definitions, enabling remote code execution via env vars."
+CVE-2014-7169,high,8.1,bash,4.3,fixed,Incomplete Shellshock fix still allows crafted environment variables to write files / execute code.
+CVE-2019-18276,high,7.8,bash,5.0,fixed,Local privilege drop bypass: setuid bash can regain dropped privileges via enable -f loadable builtins.
+CVE-2023-4911,high,7.8,glibc,2.35,new,Looney Tunables: buffer overflow in the glibc dynamic loader GLIBC_TUNABLES handling enables local root.
+CVE-2024-2961,medium,5.9,glibc,2.35,fixed,Out-of-bounds write in the glibc ISO-2022-CN-EXT iconv conversion module.
+CVE-2015-7547,critical,8.1,glibc,2.19,new,Stack-based buffer overflow in getaddrinfo() dual A/AAAA lookups allows remote code execution.
+CVE-2024-38428,critical,9.1,wget,1.21.3,new,URL parsing confusion in wget lets an attacker redirect downloads to an attacker-controlled host.
+CVE-2023-38545,high,8.8,curl,8.3.0,fixed,SOCKS5 heap buffer overflow in curl when a hostname longer than 255 bytes is passed to a slow proxy.
+CVE-2023-27533,medium,6.5,curl,7.88.0,fixed,TELNET option IAC injection in curl allows sending unintended data to the server.
+CVE-2024-2004,medium,5.3,libcurl,8.5.0,new,Usage of disabled protocol: curl may still use a protocol the app tried to disable via CURLOPT_PROTOCOLS.
+CVE-2025-61732,high,8.6,libxml2,2.9.14,fixed,Heap buffer overflow in libxml2 XML parser allows remote code execution via a crafted document.
+CVE-2022-40303,high,7.5,libxml2,2.9.10,fixed,Integer overflow in libxml2 with XML_PARSE_HUGE leads to out-of-bounds writes.
+CVE-2022-25235,critical,8.8,expat,2.4.1,new,Malformed UTF-8 in libexpat allows out-of-bounds writes and possible remote code execution.
+CVE-2024-45490,high,7.5,expat,2.5.0,new,"libexpat mishandles a negative len passed to XML_ParseBuffer, causing memory corruption."
+CVE-2022-37434,critical,9.8,zlib,1.2.11,fixed,Heap buffer over-read/overflow in zlib inflate() via a large gzip header extra field.
+CVE-2018-25032,high,7.5,zlib,1.2.11,new,Memory corruption in zlib deflate() when compressing with a specific memLevel/window configuration.
+CVE-2021-3156,high,7.8,sudo,1.8.31,new,Baron Samedit: heap buffer overflow in sudoedit argument parsing enables local privilege escalation to root.
+CVE-2023-22809,high,7.8,sudo,1.9.12,new,sudoedit lets a user edit arbitrary files via a crafted EDITOR/VISUAL containing extra arguments.
+CVE-2021-4034,high,7.8,polkit,0.105,new,PwnKit: out-of-bounds write in pkexec argument handling gives any local user root.
+CVE-2021-33910,high,7.5,systemd,245,new,Uncontrolled alloca() on a long mount unit path lets a local attacker crash systemd (PID 1) via stack exhaustion.
+CVE-2023-7104,high,7.3,sqlite,3.40.0,new,Heap buffer overflow in SQLite sessions extension sessionfuzz via a crafted database.
+CVE-2024-37370,medium,6.5,krb5,1.19,new,MIT krb5 GSS message-token length handling flaw allows tampering with confidential message data.
+CVE-2024-28834,medium,5.3,gnutls,3.7.1,new,Side-channel in GnuTLS ECDSA nonce generation leaks bits of the private key (Minerva-style).
+CVE-2021-44228,critical,10.0,log4j-core,2.14.1,new,Log4Shell: JNDI lookup substitution in logged strings enables unauthenticated remote code execution.
+CVE-2021-45046,critical,9.0,log4j-core,2.15.0,new,Incomplete Log4Shell fix still allows RCE / DoS via Thread Context Map lookups in certain configurations.
+CVE-2020-36518,high,7.5,jackson-databind,2.9.10,new,Java StackOverflow / DoS in jackson-databind via deeply nested JSON arrays during deserialization.
+CVE-2022-22965,critical,9.8,spring-beans,5.3.17,new,Spring4Shell: data-binding on Class objects allows remote code execution on JDK 9+ with a WAR deploy.
+CVE-2022-1471,critical,9.8,snakeyaml,1.30,new,SnakeYAML Constructor allows arbitrary object deserialization leading to remote code execution.
+CVE-2024-35195,medium,5.6,requests,2.30.0,new,"requests Session reuses a verify=False setting for later requests to the same host, silently skipping TLS verification."
+CVE-2023-32681,medium,6.1,requests,2.28.0,new,requests leaks the Proxy-Authorization header to the destination server on HTTPS redirect.
+CVE-2023-45803,medium,4.2,urllib3,2.0.4,new,"urllib3 does not strip the request body when a 303 redirect changes the method to GET, leaking data."
+CVE-2024-37891,medium,4.4,urllib3,1.26.17,new,urllib3 forwards Proxy-Authorization to the target host across a cross-origin redirect.
+CVE-2024-24680,high,7.5,Django,4.2.1,new,Denial of service in Django intcomma template filter via very long inputs.
+CVE-2024-27351,high,7.5,Django,4.1.7,new,Regular-expression denial of service in Django Truncator.words / urlize on long HTML inputs.
+CVE-2023-30861,high,7.5,Flask,2.2.2,new,Flask may cache and cross-serve a response containing a session cookie to the wrong client behind a proxy.
+CVE-2024-22195,medium,5.4,Jinja2,3.1.2,fixed,Jinja2 xmlattr filter allows HTML attribute injection / XSS via crafted attribute keys.
+CVE-2025-27516,medium,5.4,Jinja2,3.1.3,fixed,Jinja2 |attr filter sandbox bypass allows access to unintended Python attributes.
+CVE-2023-49083,high,7.5,cryptography,41.0.2,fixed,"NULL-pointer dereference in pyca/cryptography when loading a PKCS7 certificate, causing a crash."
+CVE-2024-26130,high,7.5,cryptography,42.0.0,new,pyca/cryptography NULL dereference when a PKCS12 file has a certificate but no private key.
+CVE-2024-34069,high,7.5,Werkzeug,2.3.7,new,"Werkzeug interactive debugger PIN can be brute-forced remotely, enabling code execution on a debug server."
+CVE-2023-46136,high,7.5,Werkzeug,2.3.6,fixed,"Werkzeug multipart parser exhausts CPU on a crafted upload, causing denial of service."
+CVE-2024-6345,high,7.5,setuptools,65.5.0,new,Remote code execution in setuptools package_index via a malicious URL passed to easy_install/download.
+CVE-2022-40897,medium,5.9,setuptools,58.0.0,new,Regular-expression denial of service in setuptools package_index HTML parsing.
+CVE-2023-50447,critical,8.1,Pillow,10.1.0,new,Pillow ImageMath.eval allows arbitrary code execution via crafted environment keys.
+CVE-2024-28219,high,7.3,Pillow,10.2.0,new,Buffer overflow in Pillow _imagingcms.c via strcpy on a long ICC profile name.
+CVE-2024-23334,high,7.5,aiohttp,3.9.1,fixed,Directory traversal in aiohttp static file handler when follow_symlinks is enabled.
+CVE-2020-14343,critical,9.8,PyYAML,5.3.1,fixed,Arbitrary code execution in PyYAML full_load / FullLoader via crafted YAML tags.
+CVE-2023-37920,high,7.5,certifi,2023.5.7,new,certifi bundled the compromised e-Tugra root CA; removed to prevent trusting mis-issued certificates.
+CVE-2021-23337,high,7.2,lodash,4.17.20,new,Command injection in lodash template via a crafted options.sourceURL / property path.
+CVE-2021-44906,critical,9.8,minimist,1.2.5,fixed,Prototype pollution in minimist allows overwriting Object.prototype via crafted --__proto__ arguments.
+CVE-2023-45857,medium,6.5,axios,1.5.0,new,axios leaks the XSRF-TOKEN in the X-XSRF-TOKEN header to third-party hosts on cross-site redirects.
+CVE-2024-28849,medium,6.5,axios,1.6.7,fixed,follow-redirects (via axios) leaks the Proxy-Authorization header across hosts on redirect.
+CVE-2022-25883,high,7.5,semver,7.3.7,new,Regular-expression denial of service in the node-semver range parser via crafted version strings.
+CVE-2024-37890,high,7.5,ws,8.11.0,new,Denial of service in the ws WebSocket library via a request with many HTTP headers.
+CVE-2024-28863,medium,6.5,tar,6.1.11,new,node-tar denial of service via memory exhaustion when extracting a crafted tar archive.
+CVE-2023-39325,high,7.5,golang.org/x/net,0.7.0,new,HTTP/2 rapid-reset: unbounded stream creation/cancellation causes denial of service in Go net/http.
+CVE-2023-48795,medium,5.9,golang.org/x/crypto,0.16.0,new,Terrapin: SSH transcript truncation attack downgrades the secure channel during handshake.
+CVE-2024-6387,high,8.1,openssh-server,9.2p1.1,new,regreSSHion: signal-handler race condition in OpenSSH sshd allows unauthenticated remote code execution as root on glibc-based Linux.
+CVE-2023-38408,critical,9.8,openssh-client,8.9p1.1,new,Remote code execution in ssh-agent PKCS#11 forwarding via a crafted agent-forwarding request.
+CVE-2023-51385,medium,6.5,openssh-server,8.4p1.1,new,OS command injection via ProxyCommand when an untrusted user/hostname contains shell metacharacters.
+CVE-2022-3602,high,7.5,openssl,3.0.6,new,X.509 email address 4-byte stack buffer overflow during punycode decoding of a crafted certificate.
+CVE-2022-3786,high,7.5,openssl,3.0.7,new,"X.509 email address variable-length buffer overflow in punycode decoding, causing denial of service."
+CVE-2023-0286,high,7.4,openssl,1.1.1n.1,new,X.400 address type confusion in X.509 GeneralName allows reading/writing arbitrary memory.
+CVE-2014-0160,high,7.5,openssl,1.0.1f.1,new,Heartbleed: TLS heartbeat over-read discloses up to 64KB of process memory including private keys.
+CVE-2016-2107,medium,5.9,openssl,1.0.3,new,Padding-oracle in AES-NI CBC MAC check allows a MITM to decrypt TLS traffic (Lucky-13 variant).
+CVE-2014-6271,critical,9.8,bash,4.4,new,"Shellshock: bash evaluates trailing code in exported function definitions, enabling remote code execution via env vars."
+CVE-2014-7169,high,8.1,bash,4.4,fixed,Incomplete Shellshock fix still allows crafted environment variables to write files / execute code.
+CVE-2019-18276,high,7.8,bash,5.1,new,Local privilege drop bypass: setuid bash can regain dropped privileges via enable -f loadable builtins.
+CVE-2023-4911,high,7.8,glibc,2.36,new,Looney Tunables: buffer overflow in the glibc dynamic loader GLIBC_TUNABLES handling enables local root.
+CVE-2024-2961,medium,5.9,glibc,2.36,new,Out-of-bounds write in the glibc ISO-2022-CN-EXT iconv conversion module.
+CVE-2015-7547,critical,8.1,glibc,2.20,new,Stack-based buffer overflow in getaddrinfo() dual A/AAAA lookups allows remote code execution.
+CVE-2024-38428,critical,9.1,wget,1.21.4,new,URL parsing confusion in wget lets an attacker redirect downloads to an attacker-controlled host.
+CVE-2023-38545,high,8.8,curl,8.3.1,fixed,SOCKS5 heap buffer overflow in curl when a hostname longer than 255 bytes is passed to a slow proxy.
+CVE-2023-27533,medium,6.5,curl,7.88.1,new,TELNET option IAC injection in curl allows sending unintended data to the server.
+CVE-2024-2004,medium,5.3,libcurl,8.5.1,new,Usage of disabled protocol: curl may still use a protocol the app tried to disable via CURLOPT_PROTOCOLS.
+CVE-2025-61732,high,8.6,libxml2,2.9.15,fixed,Heap buffer overflow in libxml2 XML parser allows remote code execution via a crafted document.
+CVE-2022-40303,high,7.5,libxml2,2.9.11,fixed,Integer overflow in libxml2 with XML_PARSE_HUGE leads to out-of-bounds writes.
+CVE-2022-25235,critical,8.8,expat,2.4.2,new,Malformed UTF-8 in libexpat allows out-of-bounds writes and possible remote code execution.
+CVE-2024-45490,high,7.5,expat,2.5.1,new,"libexpat mishandles a negative len passed to XML_ParseBuffer, causing memory corruption."
+CVE-2022-37434,critical,9.8,zlib,1.2.12,fixed,Heap buffer over-read/overflow in zlib inflate() via a large gzip header extra field.
+CVE-2018-25032,high,7.5,zlib,1.2.12,new,Memory corruption in zlib deflate() when compressing with a specific memLevel/window configuration.
+CVE-2021-3156,high,7.8,sudo,1.8.32,new,Baron Samedit: heap buffer overflow in sudoedit argument parsing enables local privilege escalation to root.
+CVE-2023-22809,high,7.8,sudo,1.9.13,new,sudoedit lets a user edit arbitrary files via a crafted EDITOR/VISUAL containing extra arguments.
+CVE-2021-4034,high,7.8,polkit,0.106,new,PwnKit: out-of-bounds write in pkexec argument handling gives any local user root.
+CVE-2021-33910,high,7.5,systemd,246,fixed,Uncontrolled alloca() on a long mount unit path lets a local attacker crash systemd (PID 1) via stack exhaustion.
+CVE-2023-7104,high,7.3,sqlite,3.40.1,fixed,Heap buffer overflow in SQLite sessions extension sessionfuzz via a crafted database.
+CVE-2024-37370,medium,6.5,krb5,1.20,new,MIT krb5 GSS message-token length handling flaw allows tampering with confidential message data.
+CVE-2024-28834,medium,5.3,gnutls,3.7.2,new,Side-channel in GnuTLS ECDSA nonce generation leaks bits of the private key (Minerva-style).
+CVE-2021-44228,critical,10.0,log4j-core,2.14.2,new,Log4Shell: JNDI lookup substitution in logged strings enables unauthenticated remote code execution.
+CVE-2021-45046,critical,9.0,log4j-core,2.15.1,new,Incomplete Log4Shell fix still allows RCE / DoS via Thread Context Map lookups in certain configurations.
+CVE-2020-36518,high,7.5,jackson-databind,2.9.11,fixed,Java StackOverflow / DoS in jackson-databind via deeply nested JSON arrays during deserialization.
+CVE-2022-22965,critical,9.8,spring-beans,5.3.18,new,Spring4Shell: data-binding on Class objects allows remote code execution on JDK 9+ with a WAR deploy.
+CVE-2022-1471,critical,9.8,snakeyaml,1.31,new,SnakeYAML Constructor allows arbitrary object deserialization leading to remote code execution.
+CVE-2024-35195,medium,5.6,requests,2.30.1,new,"requests Session reuses a verify=False setting for later requests to the same host, silently skipping TLS verification."
+CVE-2023-32681,medium,6.1,requests,2.28.1,new,requests leaks the Proxy-Authorization header to the destination server on HTTPS redirect.
+CVE-2023-45803,medium,4.2,urllib3,2.0.5,new,"urllib3 does not strip the request body when a 303 redirect changes the method to GET, leaking data."
+CVE-2024-37891,medium,4.4,urllib3,1.26.18,fixed,urllib3 forwards Proxy-Authorization to the target host across a cross-origin redirect.
+CVE-2024-24680,high,7.5,Django,4.2.2,fixed,Denial of service in Django intcomma template filter via very long inputs.
+CVE-2024-27351,high,7.5,Django,4.1.8,new,Regular-expression denial of service in Django Truncator.words / urlize on long HTML inputs.
+CVE-2023-30861,high,7.5,Flask,2.2.3,fixed,Flask may cache and cross-serve a response containing a session cookie to the wrong client behind a proxy.
+CVE-2024-22195,medium,5.4,Jinja2,3.1.3,new,Jinja2 xmlattr filter allows HTML attribute injection / XSS via crafted attribute keys.
+CVE-2025-27516,medium,5.4,Jinja2,3.1.4,new,Jinja2 |attr filter sandbox bypass allows access to unintended Python attributes.
+CVE-2023-49083,high,7.5,cryptography,41.0.3,fixed,"NULL-pointer dereference in pyca/cryptography when loading a PKCS7 certificate, causing a crash."
+CVE-2024-26130,high,7.5,cryptography,42.0.1,new,pyca/cryptography NULL dereference when a PKCS12 file has a certificate but no private key.
+CVE-2024-34069,high,7.5,Werkzeug,2.3.8,fixed,"Werkzeug interactive debugger PIN can be brute-forced remotely, enabling code execution on a debug server."
+CVE-2023-46136,high,7.5,Werkzeug,2.3.7,new,"Werkzeug multipart parser exhausts CPU on a crafted upload, causing denial of service."
+CVE-2024-6345,high,7.5,setuptools,65.5.1,fixed,Remote code execution in setuptools package_index via a malicious URL passed to easy_install/download.
+CVE-2022-40897,medium,5.9,setuptools,58.0.1,new,Regular-expression denial of service in setuptools package_index HTML parsing.
+CVE-2023-50447,critical,8.1,Pillow,10.1.1,new,Pillow ImageMath.eval allows arbitrary code execution via crafted environment keys.
+CVE-2024-28219,high,7.3,Pillow,10.2.1,new,Buffer overflow in Pillow _imagingcms.c via strcpy on a long ICC profile name.
+CVE-2024-23334,high,7.5,aiohttp,3.9.2,new,Directory traversal in aiohttp static file handler when follow_symlinks is enabled.
+CVE-2020-14343,critical,9.8,PyYAML,5.3.2,fixed,Arbitrary code execution in PyYAML full_load / FullLoader via crafted YAML tags.
+CVE-2023-37920,high,7.5,certifi,2023.5.8,fixed,certifi bundled the compromised e-Tugra root CA; removed to prevent trusting mis-issued certificates.
+CVE-2021-23337,high,7.2,lodash,4.17.21,new,Command injection in lodash template via a crafted options.sourceURL / property path.
+CVE-2021-44906,critical,9.8,minimist,1.2.6,fixed,Prototype pollution in minimist allows overwriting Object.prototype via crafted --__proto__ arguments.
+CVE-2023-45857,medium,6.5,axios,1.5.1,new,axios leaks the XSRF-TOKEN in the X-XSRF-TOKEN header to third-party hosts on cross-site redirects.
+CVE-2024-28849,medium,6.5,axios,1.6.8,new,follow-redirects (via axios) leaks the Proxy-Authorization header across hosts on redirect.
+CVE-2022-25883,high,7.5,semver,7.3.8,fixed,Regular-expression denial of service in the node-semver range parser via crafted version strings.
+CVE-2024-37890,high,7.5,ws,8.11.1,new,Denial of service in the ws WebSocket library via a request with many HTTP headers.
+CVE-2024-28863,medium,6.5,tar,6.1.12,fixed,node-tar denial of service via memory exhaustion when extracting a crafted tar archive.
+CVE-2023-39325,high,7.5,golang.org/x/net,0.7.1,fixed,HTTP/2 rapid-reset: unbounded stream creation/cancellation causes denial of service in Go net/http.
+CVE-2023-48795,medium,5.9,golang.org/x/crypto,0.16.1,new,Terrapin: SSH transcript truncation attack downgrades the secure channel during handshake.
+CVE-2024-6387,high,8.1,openssh-server,9.2p1.2,fixed,regreSSHion: signal-handler race condition in OpenSSH sshd allows unauthenticated remote code execution as root on glibc-based Linux.
+CVE-2023-38408,critical,9.8,openssh-client,8.9p1.2,new,Remote code execution in ssh-agent PKCS#11 forwarding via a crafted agent-forwarding request.
+CVE-2023-51385,medium,6.5,openssh-server,8.4p1.2,new,OS command injection via ProxyCommand when an untrusted user/hostname contains shell metacharacters.
+CVE-2022-3602,high,7.5,openssl,3.0.7,new,X.509 email address 4-byte stack buffer overflow during punycode decoding of a crafted certificate.
+CVE-2022-3786,high,7.5,openssl,3.0.8,fixed,"X.509 email address variable-length buffer overflow in punycode decoding, causing denial of service."
+CVE-2023-0286,high,7.4,openssl,1.1.1n.2,new,X.400 address type confusion in X.509 GeneralName allows reading/writing arbitrary memory.
+CVE-2014-0160,high,7.5,openssl,1.0.1f.2,fixed,Heartbleed: TLS heartbeat over-read discloses up to 64KB of process memory including private keys.
+CVE-2016-2107,medium,5.9,openssl,1.0.4,new,Padding-oracle in AES-NI CBC MAC check allows a MITM to decrypt TLS traffic (Lucky-13 variant).
+CVE-2014-6271,critical,9.8,bash,4.5,new,"Shellshock: bash evaluates trailing code in exported function definitions, enabling remote code execution via env vars."
+CVE-2014-7169,high,8.1,bash,4.5,new,Incomplete Shellshock fix still allows crafted environment variables to write files / execute code.
+CVE-2019-18276,high,7.8,bash,5.2,new,Local privilege drop bypass: setuid bash can regain dropped privileges via enable -f loadable builtins.
+CVE-2023-4911,high,7.8,glibc,2.37,new,Looney Tunables: buffer overflow in the glibc dynamic loader GLIBC_TUNABLES handling enables local root.
+CVE-2024-2961,medium,5.9,glibc,2.37,new,Out-of-bounds write in the glibc ISO-2022-CN-EXT iconv conversion module.
+CVE-2015-7547,critical,8.1,glibc,2.21,new,Stack-based buffer overflow in getaddrinfo() dual A/AAAA lookups allows remote code execution.
+CVE-2024-38428,critical,9.1,wget,1.21.5,fixed,URL parsing confusion in wget lets an attacker redirect downloads to an attacker-controlled host.
+CVE-2023-38545,high,8.8,curl,8.3.2,new,SOCKS5 heap buffer overflow in curl when a hostname longer than 255 bytes is passed to a slow proxy.
+CVE-2023-27533,medium,6.5,curl,7.88.2,fixed,TELNET option IAC injection in curl allows sending unintended data to the server.
+CVE-2024-2004,medium,5.3,libcurl,8.5.2,fixed,Usage of disabled protocol: curl may still use a protocol the app tried to disable via CURLOPT_PROTOCOLS.
+CVE-2025-61732,high,8.6,libxml2,2.9.16,new,Heap buffer overflow in libxml2 XML parser allows remote code execution via a crafted document.
+CVE-2022-40303,high,7.5,libxml2,2.9.12,fixed,Integer overflow in libxml2 with XML_PARSE_HUGE leads to out-of-bounds writes.
+CVE-2022-25235,critical,8.8,expat,2.4.3,new,Malformed UTF-8 in libexpat allows out-of-bounds writes and possible remote code execution.
+CVE-2024-45490,high,7.5,expat,2.5.2,new,"libexpat mishandles a negative len passed to XML_ParseBuffer, causing memory corruption."
+CVE-2022-37434,critical,9.8,zlib,1.2.13,new,Heap buffer over-read/overflow in zlib inflate() via a large gzip header extra field.
+CVE-2018-25032,high,7.5,zlib,1.2.13,new,Memory corruption in zlib deflate() when compressing with a specific memLevel/window configuration.
+CVE-2021-3156,high,7.8,sudo,1.8.33,new,Baron Samedit: heap buffer overflow in sudoedit argument parsing enables local privilege escalation to root.
+CVE-2023-22809,high,7.8,sudo,1.9.14,new,sudoedit lets a user edit arbitrary files via a crafted EDITOR/VISUAL containing extra arguments.
+CVE-2021-4034,high,7.8,polkit,0.107,new,PwnKit: out-of-bounds write in pkexec argument handling gives any local user root.
+CVE-2021-33910,high,7.5,systemd,247,new,Uncontrolled alloca() on a long mount unit path lets a local attacker crash systemd (PID 1) via stack exhaustion.
+CVE-2023-7104,high,7.3,sqlite,3.40.2,new,Heap buffer overflow in SQLite sessions extension sessionfuzz via a crafted database.
+CVE-2024-37370,medium,6.5,krb5,1.21,new,MIT krb5 GSS message-token length handling flaw allows tampering with confidential message data.
+CVE-2024-28834,medium,5.3,gnutls,3.7.3,new,Side-channel in GnuTLS ECDSA nonce generation leaks bits of the private key (Minerva-style).
+CVE-2021-44228,critical,10.0,log4j-core,2.14.3,new,Log4Shell: JNDI lookup substitution in logged strings enables unauthenticated remote code execution.
+CVE-2021-45046,critical,9.0,log4j-core,2.15.2,fixed,Incomplete Log4Shell fix still allows RCE / DoS via Thread Context Map lookups in certain configurations.
+CVE-2020-36518,high,7.5,jackson-databind,2.9.12,fixed,Java StackOverflow / DoS in jackson-databind via deeply nested JSON arrays during deserialization.
+CVE-2022-22965,critical,9.8,spring-beans,5.3.19,new,Spring4Shell: data-binding on Class objects allows remote code execution on JDK 9+ with a WAR deploy.
+CVE-2022-1471,critical,9.8,snakeyaml,1.32,fixed,SnakeYAML Constructor allows arbitrary object deserialization leading to remote code execution.
+CVE-2024-35195,medium,5.6,requests,2.30.2,fixed,"requests Session reuses a verify=False setting for later requests to the same host, silently skipping TLS verification."
+CVE-2023-32681,medium,6.1,requests,2.28.2,new,requests leaks the Proxy-Authorization header to the destination server on HTTPS redirect.
+CVE-2023-45803,medium,4.2,urllib3,2.0.6,fixed,"urllib3 does not strip the request body when a 303 redirect changes the method to GET, leaking data."
+CVE-2024-37891,medium,4.4,urllib3,1.26.19,new,urllib3 forwards Proxy-Authorization to the target host across a cross-origin redirect.
+CVE-2024-24680,high,7.5,Django,4.2.3,fixed,Denial of service in Django intcomma template filter via very long inputs.
+CVE-2024-27351,high,7.5,Django,4.1.9,new,Regular-expression denial of service in Django Truncator.words / urlize on long HTML inputs.
+CVE-2023-30861,high,7.5,Flask,2.2.4,new,Flask may cache and cross-serve a response containing a session cookie to the wrong client behind a proxy.
+CVE-2024-22195,medium,5.4,Jinja2,3.1.4,new,Jinja2 xmlattr filter allows HTML attribute injection / XSS via crafted attribute keys.
+CVE-2025-27516,medium,5.4,Jinja2,3.1.5,new,Jinja2 |attr filter sandbox bypass allows access to unintended Python attributes.
+CVE-2023-49083,high,7.5,cryptography,41.0.4,fixed,"NULL-pointer dereference in pyca/cryptography when loading a PKCS7 certificate, causing a crash."
+CVE-2024-26130,high,7.5,cryptography,42.0.2,fixed,pyca/cryptography NULL dereference when a PKCS12 file has a certificate but no private key.
+CVE-2024-34069,high,7.5,Werkzeug,2.3.9,new,"Werkzeug interactive debugger PIN can be brute-forced remotely, enabling code execution on a debug server."
+CVE-2023-46136,high,7.5,Werkzeug,2.3.8,new,"Werkzeug multipart parser exhausts CPU on a crafted upload, causing denial of service."
+CVE-2024-6345,high,7.5,setuptools,65.5.2,new,Remote code execution in setuptools package_index via a malicious URL passed to easy_install/download.
+CVE-2022-40897,medium,5.9,setuptools,58.0.2,new,Regular-expression denial of service in setuptools package_index HTML parsing.
+CVE-2023-50447,critical,8.1,Pillow,10.1.2,new,Pillow ImageMath.eval allows arbitrary code execution via crafted environment keys.
+CVE-2024-28219,high,7.3,Pillow,10.2.2,new,Buffer overflow in Pillow _imagingcms.c via strcpy on a long ICC profile name.
+CVE-2024-23334,high,7.5,aiohttp,3.9.3,new,Directory traversal in aiohttp static file handler when follow_symlinks is enabled.
+CVE-2020-14343,critical,9.8,PyYAML,5.3.3,new,Arbitrary code execution in PyYAML full_load / FullLoader via crafted YAML tags.
+CVE-2023-37920,high,7.5,certifi,2023.5.9,fixed,certifi bundled the compromised e-Tugra root CA; removed to prevent trusting mis-issued certificates.
+CVE-2021-23337,high,7.2,lodash,4.17.22,new,Command injection in lodash template via a crafted options.sourceURL / property path.
+CVE-2021-44906,critical,9.8,minimist,1.2.7,fixed,Prototype pollution in minimist allows overwriting Object.prototype via crafted --__proto__ arguments.
+CVE-2023-45857,medium,6.5,axios,1.5.2,new,axios leaks the XSRF-TOKEN in the X-XSRF-TOKEN header to third-party hosts on cross-site redirects.
+CVE-2024-28849,medium,6.5,axios,1.6.9,new,follow-redirects (via axios) leaks the Proxy-Authorization header across hosts on redirect.
+CVE-2022-25883,high,7.5,semver,7.3.9,fixed,Regular-expression denial of service in the node-semver range parser via crafted version strings.
+CVE-2024-37890,high,7.5,ws,8.11.2,fixed,Denial of service in the ws WebSocket library via a request with many HTTP headers.
+CVE-2024-28863,medium,6.5,tar,6.1.13,new,node-tar denial of service via memory exhaustion when extracting a crafted tar archive.
+CVE-2023-39325,high,7.5,golang.org/x/net,0.7.2,new,HTTP/2 rapid-reset: unbounded stream creation/cancellation causes denial of service in Go net/http.
+CVE-2023-48795,medium,5.9,golang.org/x/crypto,0.16.2,fixed,Terrapin: SSH transcript truncation attack downgrades the secure channel during handshake.
+CVE-2024-6387,high,8.1,openssh-server,9.2p1.3,new,regreSSHion: signal-handler race condition in OpenSSH sshd allows unauthenticated remote code execution as root on glibc-based Linux.
+CVE-2023-38408,critical,9.8,openssh-client,8.9p1.3,new,Remote code execution in ssh-agent PKCS#11 forwarding via a crafted agent-forwarding request.
+CVE-2023-51385,medium,6.5,openssh-server,8.4p1.3,new,OS command injection via ProxyCommand when an untrusted user/hostname contains shell metacharacters.
+CVE-2022-3602,high,7.5,openssl,3.0.8,new,X.509 email address 4-byte stack buffer overflow during punycode decoding of a crafted certificate.
+CVE-2022-3786,high,7.5,openssl,3.0.9,fixed,"X.509 email address variable-length buffer overflow in punycode decoding, causing denial of service."

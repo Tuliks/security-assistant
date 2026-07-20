@@ -136,8 +136,65 @@ def run_single_query(query: str):
         sys.exit(1)
 
 
+def _sync_corpus(reset: bool = False):
+    """Auto-ingest dropped reports so `app.py` is the only script to run.
+
+    Reports are discovered straight from the folder tree
+    (data/reports/<product>/<release>/<scanner>/[<date>/]<file>), unioned with any
+    curated manifest rows — so an engineer just dumps files and runs the assistant,
+    no manifest editing. Incremental: only new/changed records are embedded, so this
+    is near-instant when nothing changed. With `reset`, the store is dropped first
+    for a clean full rebuild (also purges records for reports removed at the source).
+
+    Resets/syncs through the agent's OWN store instance so its collection handle
+    stays valid. A sync failure is non-fatal — the agent can still answer from
+    whatever the persistent store already holds.
+    """
+    did_reset = False
+    try:
+        from ingest import sync
+        from ingestion.scan import collect_envelopes
+        from tools.report_search import _store
+
+        store = _store()  # the same instance the agent queries at run time
+        if reset:
+            # Build-then-swap guard: prove the embedding model can load BEFORE the
+            # destructive wipe, so a predictable failure (offline, model not cached)
+            # aborts with the corpus intact instead of after it's already gone.
+            from tools.embedder import embed_query
+
+            embed_query("warmup")
+            store.reset()
+            did_reset = True
+            print(f"{COLORS['dim']}Store reset — rebuilding corpus from scratch.{COLORS['reset']}")
+
+        print(f"{COLORS['dim']}Scanning for reports…{COLORS['reset']}")
+        envelopes, warnings = collect_envelopes()
+        for w in warnings:  # misplaced drops / unknown scanners — don't hide them
+            print(f"{COLORS['yellow']}  ! {w}{COLORS['reset']}")
+        added = sync(envelopes=envelopes, quiet=True, store=store)
+        note = f"{added} new/changed record(s) ingested" if added else "up to date"
+        print(f"{COLORS['dim']}Corpus {note} ({len(envelopes)} report(s)).{COLORS['reset']}")
+    except Exception as e:
+        if did_reset:
+            # The wipe already happened; be honest about the empty state, don't
+            # claim the old corpus survived. Reports on disk are intact — a plain
+            # re-run re-ingests them incrementally.
+            print(
+                f"{COLORS['red']}{COLORS['bold']}Rebuild FAILED after reset{COLORS['reset']} "
+                f"{COLORS['red']}({e}). Corpus is now EMPTY — re-run `python app.py` "
+                f"to retry ingestion.{COLORS['reset']}"
+            )
+        else:
+            print(f"{COLORS['yellow']}Corpus sync skipped ({e}); using existing store.{COLORS['reset']}")
+
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        run_single_query(" ".join(sys.argv[1:]))
+    _args = sys.argv[1:]
+    _reset = "--reset" in _args
+    _args = [a for a in _args if a != "--reset"]  # strip the flag; rest is the query
+    _sync_corpus(reset=_reset)
+    if _args:
+        run_single_query(" ".join(_args))
     else:
         run_chat()

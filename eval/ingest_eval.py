@@ -71,10 +71,10 @@ def main() -> int:
     check("cvss_score is numeric where present", types_ok)
 
     print("\nMetadata filters scope retrieval")
-    ivan = _all(store, {"product_name": "Ivan"})
-    check("filter product=Ivan -> only Ivan (13: Twistlock 5 + Trivy 5 + Nessus PDF 3)",
-          len(ivan) == 13 and all(h["metadata"]["product_name"] == "Ivan" for h in ivan),
-          f"got {len(ivan)}")
+    productb = _all(store, {"product_name": "ProductB"})
+    check("filter product=ProductB -> only ProductB (13: Twistlock 5 + Trivy 5 + Nessus PDF 3)",
+          len(productb) == 13 and all(h["metadata"]["product_name"] == "ProductB" for h in productb),
+          f"got {len(productb)}")
 
     nessus = _all(store, {"scanner": "Nessus"})
     check("filter scanner=Nessus -> all Nessus (10: HTML 4 + PDF 3 + legacy 3)",
@@ -86,20 +86,20 @@ def main() -> int:
           all(h["metadata"]["severity"] in ("critical", "high") for h in crit_high) and crit_high,
           f"got {len(crit_high)}")
 
-    compound = _all(store, {"product_name": "Ivan", "scanner": "Trivy"})
-    check("compound $and product=Ivan AND scanner=Trivy (5 records)",
+    compound = _all(store, {"product_name": "ProductB", "scanner": "Trivy"})
+    check("compound $and product=ProductB AND scanner=Trivy (5 records)",
           len(compound) == 5 and all(
-              h["metadata"]["product_name"] == "Ivan" and h["metadata"]["scanner"] == "Trivy"
+              h["metadata"]["product_name"] == "ProductB" and h["metadata"]["scanner"] == "Trivy"
               for h in compound),
           f"got {len(compound)}")
 
     print("\nHybrid query + filter (scoped retrieval)")
     hits = store.hybrid_search(
         "remote code execution in logging library",
-        filters={"product_name": "Ivan", "scanner": "Trivy"}, k=1,
+        filters={"product_name": "ProductB", "scanner": "Trivy"}, k=1,
     )
     top = hits[0]["metadata"] if hits else {}
-    check("'RCE in logging library' + Ivan/Trivy -> Log4Shell (CVE-2021-44228)",
+    check("'RCE in logging library' + ProductB/Trivy -> Log4Shell (CVE-2021-44228)",
           top.get("finding_id") == "CVE-2021-44228", f"got {top.get('finding_id')}")
 
     print("\nUnified corpus: legacy findings reachable via the same store")
